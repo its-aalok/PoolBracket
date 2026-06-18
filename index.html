@@ -3,366 +3,940 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Double Elimination Bracket Generator</title>
+    <title>Interactive Esports Bracket Arena</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
+            --bg-color: #0b0f19;
+            --card-bg: rgba(30, 41, 59, 0.7);
             --border-color: #334155;
             --text-color: #f8fafc;
             --accent-color: #3b82f6;
-            --winner-color: #22c55e;
+            --winner-color: #10b981;
             --loser-color: #ef4444;
+            --removed-color: #f59e0b;
+            --neon-glow: rgba(59, 130, 246, 0.5);
+            --purple-glow: rgba(168, 85, 247, 0.5);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
+            overflow-x: hidden;
+        }
+
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .container {
-            max-width: 1500px;
+            max-width: 1600px;
             margin: 0 auto;
+            position: relative;
         }
 
         h1 {
             text-align: center;
-            color: var(--text-color);
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(96, 165, 250, 0.2);
         }
 
         .setup-section {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            text-align: center;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
         }
 
-        input, button {
-            padding: 10px 15px;
-            font-size: 16px;
-            border-radius: 4px;
+        .setup-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .setup-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .input-bucket {
+            display: flex;
+            gap: 8px;
+        }
+
+        .player-chips-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-width: 550px;
+        }
+
+        .player-chip {
+            background: rgba(30, 41, 59, 0.9);
             border: 1px solid var(--border-color);
-            margin: 5px;
+            color: #60a5fa;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            animation: chipPop 0.2s ease-out;
+        }
+
+        @keyframes chipPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .player-chip .remove-chip-btn {
+            color: var(--loser-color);
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 15px;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .player-chip .remove-chip-btn:hover {
+            color: #f87171;
+        }
+
+        .save-status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: #38bdf8;
+            margin-right: 10px;
         }
 
         input {
-            background-color: var(--bg-color);
+            background-color: rgba(15, 23, 42, 0.8);
             color: var(--text-color);
-            width: 250px;
+            padding: 12px 16px;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            width: 200px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        input:disabled {
+            background-color: rgba(15, 23, 42, 0.4);
+            color: #475569;
+            cursor: not-allowed;
+            border-color: #1e293b;
         }
 
         button {
-            background-color: var(--accent-color);
-            color: white;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
             border: none;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            vertical-align: middle;
         }
 
-        button:hover {
-            background-color: #2563eb;
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+
+        .btn-secondary-action {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .btn-secondary-action:hover:not(:disabled) {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #a855f7, #7e22ce);
+            color: white;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+            animation: startPulse 1.5s infinite alternate;
+        }
+
+        @keyframes startPulse {
+            0% { box-shadow: 0 0 8px rgba(168, 85, 247, 0.4); }
+            100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8); }
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: none;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+
+        .btn-edit-roster {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: none;
+            margin-right: 8px;
+        }
+
+        .btn-edit-roster:hover {
+            background: rgba(59, 130, 246, 0.18);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .global-layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 40px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .sidebar-container {
+            position: relative;
+            height: 100%;
         }
 
         .bracket-container {
             display: flex;
             flex-direction: column;
-            gap: 40px;
-            padding: 20px 0;
-        }
-
-        /* Split layout layout for upper bracket section */
-        .upper-section-row {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 30px;
-            align-items: start;
+            gap: 50px;
+            min-width: 0; 
         }
 
         .bracket-section {
-            background: rgba(30, 41, 59, 0.5);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            position: relative;
         }
 
-        /* Interactive Side Dashboard Widget */
-        .live-widget {
-            background-color: #111827;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            position: sticky;
-            top: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .live-widget.active {
-            border-color: #3b82f6;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-        }
-
-        .widget-header {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .bracket-section h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
             color: #94a3b8;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 10px;
         }
 
-        .widget-badge {
-            background-color: #334155;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
+        .svg-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        .live-widget.active .widget-badge {
-            background-color: #1e3a8a;
-            color: #60a5fa;
-            animation: textPulse 1.5s infinite alternate;
+        .connector-line {
+            stroke: #334155;
+            stroke-width: 2;
+            fill: none;
+            transition: stroke 0.3s;
         }
 
-        @keyframes textPulse {
-            0% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-
-        .widget-body {
-            font-weight: 600;
-            font-size: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        /* Clickable control cards inside the live status box */
-        .widget-player-btn {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 12px;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-
-        .widget-player-btn:hover {
-            background-color: #334155;
-            border-color: #60a5fa;
-            transform: translateY(-1px);
-        }
-
-        .widget-vs {
-            font-size: 11px;
-            color: #64748b;
-            text-align: center;
-            margin: 4px 0;
-            font-weight: normal;
+        .connector-line.highlight {
+            stroke: var(--accent-color);
+            stroke-width: 3;
         }
 
         .tournament-grid {
             display: flex;
-            gap: 40px;
+            gap: 60px;
             align-items: center;
             padding: 20px 0;
             overflow-x: auto;
+            position: relative;
+            z-index: 2;
         }
 
         .round {
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            gap: 20px;
-            min-width: 200px;
+            gap: 24px;
+            min-width: 220px;
+            height: 100%;
         }
 
         .matchup {
-            background-color: var(--card-bg);
+            background: #111827;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: border-color 0.3s, box-shadow 0.3s;
-            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.4s ease;
         }
 
         .matchup.in-progress {
             border-color: #60a5fa;
             animation: livePulse 2s infinite alternate;
-            z-index: 10;
+            box-shadow: 0 0 20px var(--neon-glow);
+        }
+
+        .matchup.completed-match {
+            background: rgba(15, 23, 42, 0.85);
+            border-color: rgba(51, 65, 85, 0.4);
+            opacity: 0.65;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
         }
 
         @keyframes livePulse {
-            0% { box-shadow: 0 0 4px rgba(59, 130, 246, 0.4); }
-            100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.7); }
+            0% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
+            100% { box-shadow: 0 0 22px rgba(59, 130, 246, 0.7); }
         }
 
         .match-title {
-            font-size: 11px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
             text-align: center;
-            background: #111827;
-            padding: 6px 2px;
-            color: #94a3b8;
+            background: #030712;
+            padding: 8px 4px;
+            color: #475569;
             border-bottom: 1px solid var(--border-color);
-            cursor: pointer;
-            user-select: none;
-            transition: color 0.2s, background 0.2s;
+            cursor: not-allowed;
+            transition: all 0.2s;
         }
 
-        .match-title:hover {
+        body.status-active .matchup:not(.completed-match) .match-title {
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        body.status-active .matchup:not(.completed-match) .match-title:hover {
             background: #1f2937;
             color: #60a5fa;
         }
 
-        .matchup.in-progress .match-title {
+        body.status-active .matchup.in-progress .match-title {
             background: #1e3a8a;
             color: #93c5fd;
         }
 
+        .matchup.completed-match .match-title {
+            cursor: not-allowed;
+            background: #090d16;
+            color: #475569;
+        }
+
         .player {
-            padding: 10px;
+            padding: 12px 14px;
             display: flex;
             justify-content: space-between;
-            user-select: none;
-            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+            color: #94a3b8; 
             cursor: not-allowed;
-            transition: background 0.2s, color 0.2s;
+            transition: all 0.2s;
         }
 
         .player:first-of-type {
             border-bottom: 1px solid var(--border-color);
         }
 
-        .matchup.in-progress .player {
+        body.status-active .matchup.in-progress .player {
             cursor: pointer;
             color: var(--text-color);
         }
 
-        .matchup.in-progress .player:hover {
-            background-color: #334155;
+        body.status-active .matchup.in-progress .player:hover {
+            background-color: #1e293b;
         }
 
         .player.won {
             color: var(--winner-color) !important;
-            font-weight: bold;
+            font-weight: 700;
+            background: rgba(16, 185, 129, 0.03);
         }
 
         .player.lost {
-            color: #475569 !important;
+            color: #475569 !important; 
             text-decoration: line-through;
         }
+
+        .player.removed-participant {
+            color: var(--removed-color) !important;
+            text-decoration: line-through;
+            font-style: italic;
+            background: rgba(245, 158, 11, 0.04);
+        }
         
+        .tbd-text {
+            color: #475569;
+            font-style: italic;
+            font-weight: 400;
+        }
+
         .bye {
-            color: #64748b;
+            color: #475569;
             font-style: italic;
         }
 
-        .grand-final-note {
-            text-align: center;
+        .live-widget {
+            background: #0f172a;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 25px; 
+            border: 1px solid rgba(255,255,255,0.03);
+            z-index: 100;
+        }
+
+        .live-widget.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
+        }
+
+        .live-widget.completed-dashboard {
+            border-color: #10b981;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
+        }
+
+        .widget-header {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #64748b;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-badge {
+            background-color: #1e293b;
+            padding: 4px 8px;
+            border-radius: 4px;
             color: #94a3b8;
-            font-size: 14px;
-            margin-top: 10px;
+        }
+
+        .live-widget.active .widget-badge {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            animation: blinker 1.5s infinite alternate;
+        }
+
+        .live-widget.completed-dashboard .widget-badge {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        @keyframes blinker {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .widget-player-btn {
+            background-color: #111827;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .live-widget.active .widget-player-btn:hover {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .widget-vs {
+            font-size: 11px;
+            color: #475569;
+            text-align: center;
+            margin: 6px 0;
+            font-weight: 700;
+        }
+
+        .btn-success-widget {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            font-size: 13px;
+        }
+
+        .btn-success-widget:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #34d399, #10b981);
         }
     </style>
 </head>
 <body>
 
+<canvas id="bgCanvas"></canvas>
+
 <div class="container">
-    <h1>Double Elimination Tournament Bracket</h1>
+    <h1>Double Elimination Tournament Arena</h1>
     
     <div class="setup-section">
-        <label for="playerInput">Enter players (comma separated):</label><br><br>
-        <input type="text" id="playerInput" value="Alice, Bob, Charlie, Dave, Eve, Frank, Grace, Hank">
-        <button onclick="generateBracket()">Generate Bracket</button>
-        <p style="color: #60a5fa; font-size: 14px; margin-top: 10px; margin-bottom: 0; font-weight: 500;">
-            🔒 <strong>Instructions:</strong> Click a Match Header (e.g. <em>W-R1-M1</em>) to toggle it live. You can pick the winner inside the bracket OR click on them directly within the <strong>Live Status Box</strong>!
-        </p>
+        <div class="setup-row">
+            <div class="setup-controls">
+                <div class="input-bucket">
+                    <input type="text" id="onePlayerInput" placeholder="Enter player name...">
+                    <button id="addPlayerBtn" class="btn-secondary-action" onclick="addSinglePlayer()">Add</button>
+                </div>
+                <div id="playerChipsContainer" class="player-chips-grid"></div>
+                
+                <button id="genBtn" class="btn-primary" onclick="generateBracket()">Create Bracket</button>
+                <button id="startBtn" class="btn-success" onclick="startTournament()" style="display: none;">Start Tournament</button>
+            </div>
+            <div>
+                <button id="editRosterBtn" class="btn-edit-roster" onclick="toggleRosterEditMode()">⚙️ Edit Active Roster</button>
+                <button id="topResetBtn" class="btn-danger" onclick="freshStartTournamentReset()">Reset & Start Fresh</button>
+            </div>
+        </div>
+        <div>
+            <div id="saveStatus" class="save-status">📋 System Booted</div>
+        </div>
     </div>
 
-    <div id="bracketsDisplay" class="bracket-container" style="display: none;">
+    <div id="bracketsDisplay" class="global-layout-grid" style="display: none;">
         
-        <!-- Upper Row containing the Winners tree alongside our Interactive Dashboard Box -->
-        <div class="upper-section-row">
-            <div class="bracket-section">
+        <div class="bracket-container">
+            <div id="winnersSection" class="bracket-section">
                 <h2>Upper Bracket (Winners)</h2>
-                <div id="winnersGrid" class="tournament-grid"></div>
+                <div id="winnersGrid" class="tournament-grid">
+                    <svg id="winnersSVG" class="svg-container"></svg>
+                </div>
             </div>
 
-            <!-- Dashboard Box placed cleanly on the Right Side of the Upper Tree -->
+            <div id="losersSection" class="bracket-section">
+                <h2>Lower Bracket (Losers)</h2>
+                <div id="losersGrid" class="tournament-grid">
+                    <svg id="losersSVG" class="svg-container"></svg>
+                </div>
+            </div>
+
+            <div class="bracket-section">
+                <h2>Grand Finals</h2>
+                <div id="grandFinalsGrid" class="tournament-grid" style="justify-content: center;"></div>
+            </div>
+        </div>
+
+        <div class="sidebar-container">
             <div id="liveMatchWidget" class="live-widget">
                 <div class="widget-header">
-                    <span>Status Tracker</span>
+                    <span>LIVE DASHBOARD</span>
                     <span id="widgetBadge" class="widget-badge">OFFLINE</span>
                 </div>
                 <div id="widgetBody" class="widget-body">
-                    <div style="color: #64748b; font-size: 13px; font-weight: normal; text-align: center; padding: 20px 0;">
-                        Select a match header to bring it live.
+                    <div id="widgetPlaceholderMsg" style="color: #475569; font-size: 13px; text-align: center; padding: 20px 0;">
+                        Select an available match header inside the tree to begin.
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Losers Bracket -->
-        <div class="bracket-section">
-            <h2>Lower Bracket (Losers)</h2>
-            <div id="losersGrid" class="tournament-grid"></div>
-        </div>
-
-        <!-- Grand Finals -->
-        <div class="bracket-section">
-            <h2>Grand Finals</h2>
-            <div id="grandFinalsGrid" class="tournament-grid" style="justify-content: center;"></div>
-            <p class="grand-final-note">*If the Loser's Bracket Champion wins the first match, a second "Bracket Reset" match is required.</p>
-        </div>
+        
     </div>
 </div>
 
 <script>
     let tournamentData = {
         players: [],
+        removedPlayers: [], 
         winnersRounds: [],
         losersRounds: [],
         grandFinal: null,
         activeMatchId: null,
-        activeMatchMetadata: null // Holds structural positions for side panel executions
+        activeMatchMetadata: null,
+        status: "empty" 
     };
 
-    function generateBracket() {
-        const input = document.getElementById('playerInput').value;
-        let players = input.split(',').map(p => p.trim()).filter(p => p !== "");
-        
-        if (players.length < 2) {
-            alert("Please enter at least 2 players.");
-            return;
+    let stagedPlayers = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank", "Grace", "Hank"];
+    let isMidTournamentEditing = false; 
+
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.5;
+            this.speedX = Math.random() * 0.2 - 0.1;
+            this.speedY = Math.random() * 0.2 - 0.1;
+        }
+        update() {
+            this.x += this.speedX; this.y += this.speedY;
+            if (this.x > canvas.width) this.x = 0; if (this.x < 0) this.x = canvas.width;
+            if (this.y > canvas.height) this.y = 0; if (this.y < 0) this.y = canvas.height;
+        }
+        draw() {
+            ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+    for(let i=0; i<60; i++) particles.push(new Particle());
+    function animate() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+    }
+    animate();
+
+    function addSinglePlayer() {
+        const inputEl = document.getElementById('onePlayerInput');
+        const value = inputEl.value.trim();
+        if (!value) return;
+
+        if (stagedPlayers.some(p => p.toLowerCase() === value.toLowerCase())) { 
+            alert("This name is already in the tournament pool."); 
+            return; 
         }
 
-        tournamentData.players = players;
+        stagedPlayers.push(value);
+        inputEl.value = '';
+        inputEl.focus(); 
+        renderPlayerChips();
+    }
+
+    function removeSinglePlayer(index) {
+        stagedPlayers.splice(index, 1);
+        renderPlayerChips();
+    }
+
+    function renderPlayerChips() {
+        const container = document.getElementById('playerChipsContainer');
+        container.innerHTML = '';
+        
+        const isLocked = tournamentData.status !== "empty" && !isMidTournamentEditing;
+        
+        stagedPlayers.forEach((player, idx) => {
+            const chip = document.createElement('div');
+            chip.className = 'player-chip';
+            chip.innerHTML = `<span>${player}</span>`;
+            
+            if (!isLocked) {
+                const removeBtn = document.createElement('span');
+                removeBtn.className = 'remove-chip-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.onclick = () => removeSinglePlayer(idx);
+                chip.appendChild(removeBtn);
+            }
+            container.appendChild(chip);
+        });
+
+        document.getElementById('onePlayerInput').disabled = isLocked;
+        document.getElementById('addPlayerBtn').disabled = isLocked;
+    }
+
+    document.getElementById('onePlayerInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') { addSinglePlayer(); }
+    });
+
+    function toggleRosterEditMode() {
+        const btn = document.getElementById('editRosterBtn');
+        
+        if (!isMidTournamentEditing) {
+            if (tournamentData.status === "empty") {
+                alert("Please build a bracket container profile before calling roster modifications.");
+                return;
+            }
+            isMidTournamentEditing = true;
+            btn.innerText = "💾 Apply Roster Changes";
+            btn.style.background = "rgba(168, 85, 247, 0.12)";
+            btn.style.borderColor = "rgba(168, 85, 247, 0.5)";
+            btn.style.color = "#a855f7";
+            renderPlayerChips();
+        } else {
+            isMidTournamentEditing = false;
+            btn.innerText = "⚙️ Edit Active Roster";
+            btn.style.background = "rgba(59, 130, 246, 0.08)";
+            btn.style.borderColor = "rgba(59, 130, 246, 0.25)";
+            btn.style.color = "#60a5fa";
+            applyMidTournamentFixturesRecalculation();
+        }
+    }
+
+    function applyMidTournamentFixturesRecalculation() {
+        const oldPlayers = tournamentData.players || [];
+        const newPlayers = [...stagedPlayers];
+        
+        const removed = oldPlayers.filter(p => !newPlayers.includes(p));
+        const added = newPlayers.filter(p => !oldPlayers.includes(p));
+        
+        if (!tournamentData.removedPlayers) tournamentData.removedPlayers = [];
+        removed.forEach(p => {
+            if (!tournamentData.removedPlayers.includes(p)) tournamentData.removedPlayers.push(p);
+        });
+
+        // Safe Guard: Reset old active live pointers to avoid index structural drift exceptions
+        tournamentData.activeMatchId = null;
+        tournamentData.activeMatchMetadata = null;
+
+        let addedPointer = 0;
+        if (added.length > 0) {
+            for (let m of tournamentData.winnersRounds[0]) {
+                if (addedPointer >= added.length) break;
+                if (m.p1 === "BYE") { m.p1 = added[addedPointer++]; m.winner = null; m.loser = null; }
+                if (addedPointer < added.length && m.p2 === "BYE") { m.p2 = added[addedPointer++]; m.winner = null; m.loser = null; }
+            }
+            if (addedPointer < added.length) {
+                const searchAndInject = (m) => {
+                    if (addedPointer >= added.length || m.winner) return;
+                    if (m.p1 === "BYE" || !m.p1) { m.p1 = added[addedPointer++]; m.winner = null; m.loser = null; }
+                    if (addedPointer < added.length && (m.p2 === "BYE" || !m.p2)) { m.p2 = added[addedPointer++]; m.winner = null; m.loser = null; }
+                };
+                tournamentData.winnersRounds.forEach(r => r.forEach(searchAndInject));
+                tournamentData.losersRounds.forEach(r => r.forEach(searchAndInject));
+            }
+        }
+
+        const processRemovals = (match) => {
+            if (!match || match.winner) return;
+            let p1Left = tournamentData.removedPlayers.includes(match.p1);
+            let p2Left = tournamentData.removedPlayers.includes(match.p2);
+            
+            if (p1Left && match.p2 && match.p2 !== "BYE") { match.winner = match.p2; match.loser = match.p1; }
+            else if (p2Left && match.p1 && match.p1 !== "BYE") { match.winner = match.p1; match.loser = match.p2; }
+            else if (p1Left && p2Left) { match.winner = "BYE"; match.loser = "BYE"; }
+        };
+
+        tournamentData.winnersRounds.forEach(round => round.forEach(processRemovals));
+        tournamentData.losersRounds.forEach(round => round.forEach(processRemovals));
+        processRemovals(tournamentData.grandFinal);
+
+        tournamentData.players = [...newPlayers];
+        
+        for (let r = 0; r < tournamentData.winnersRounds.length; r++) { propagateWinners(r); }
+        for (let r = 0; r < tournamentData.losersRounds.length; r++) { propagateLosers(r); }
+        
+        updateGrandFinals();
+        applyLifecycleUIChanges();
+        updateLiveWidget();
+        renderBracket();
+        saveToLocalStorage();
+    }
+
+    function drawConnectors(gridId, svgId) {
+        const grid = document.getElementById(gridId);
+        const svg = document.getElementById(svgId);
+        if (!grid || !svg) return;
+        
+        svg.setAttribute('width', grid.scrollWidth);
+        svg.setAttribute('height', grid.scrollHeight);
+        svg.innerHTML = ''; 
+        
+        const rounds = grid.querySelectorAll('.round');
+        for (let i = 0; i < rounds.length - 1; i++) {
+            const currentRound = rounds[i];
+            const nextRound = rounds[i + 1];
+            const currentMatches = currentRound.querySelectorAll('.matchup');
+            const nextMatches = nextRound.querySelectorAll('.matchup');
+            
+            currentMatches.forEach((match, index) => {
+                const rectA = match.getBoundingClientRect();
+                const parentRect = svg.getBoundingClientRect();
+                const startX = (rectA.right - parentRect.left);
+                const startY = (rectA.top + rectA.height / 2) - parentRect.top;
+                
+                let targetIndex = Math.floor(index / 2);
+                if (gridId === 'losersGrid' && i % 2 === 0) { targetIndex = index; }
+                
+                const targetMatch = nextMatches[targetIndex];
+                if (!targetMatch) return;
+                
+                const rectB = targetMatch.getBoundingClientRect();
+                const endX = rectB.left - parentRect.left;
+                const endY = (rectB.top + rectB.height / 2) - parentRect.top;
+                const midX = startX + (endX - startX) / 2;
+                
+                const pathData = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('class', match.classList.contains('in-progress') ? 'connector-line highlight' : 'connector-line');
+                svg.appendChild(path);
+            });
+        }
+    }
+
+    function triggerGlobalLineRepaint() {
+        setTimeout(() => {
+            drawConnectors('winnersGrid', 'winnersSVG');
+            drawConnectors('losersGrid', 'losersSVG');
+        }, 50);
+    }
+    window.addEventListener('resize', triggerGlobalLineRepaint);
+
+    function saveToLocalStorage() {
+        localStorage.setItem('arenaLifecycleTournamentSave', JSON.stringify(tournamentData));
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('arenaLifecycleTournamentSave');
+        if (saved) {
+            tournamentData = JSON.parse(saved);
+            if (!tournamentData.removedPlayers) tournamentData.removedPlayers = [];
+            if (tournamentData.players) { stagedPlayers = [...tournamentData.players]; }
+            applyLifecycleUIChanges();
+            updateLiveWidget();
+            renderBracket();
+        } else {
+            renderPlayerChips();
+        }
+    }
+
+    function applyLifecycleUIChanges() {
+        const genBtn = document.getElementById('genBtn');
+        const startBtn = document.getElementById('startBtn');
+        const statusBadge = document.getElementById('saveStatus');
+        const displayContainer = document.getElementById('bracketsDisplay');
+
+        document.body.className = `status-${tournamentData.status}`;
+        renderPlayerChips(); 
+
+        if (tournamentData.status === "empty") {
+            displayContainer.style.display = 'none'; startBtn.style.display = 'none'; genBtn.style.display = 'inline-block';
+            genBtn.disabled = false; statusBadge.innerText = "📋 Standing By"; statusBadge.style.color = "#94a3b8";
+        } 
+        else if (tournamentData.status === "unstarted") {
+            displayContainer.style.display = 'grid'; startBtn.style.display = 'inline-block'; genBtn.style.disabled = true; genBtn.style.display = 'none';
+            statusBadge.innerText = "⏳ Bracket Built - Awaiting Start"; statusBadge.style.color = "#a855f7";
+        } 
+        else if (tournamentData.status === "active") {
+            displayContainer.style.display = 'grid'; startBtn.style.display = 'none'; genBtn.style.display = 'inline-block'; genBtn.disabled = true; 
+            statusBadge.innerText = "⚔️ Tournament In Progress"; statusBadge.style.color = "#38bdf8";
+        } 
+        else if (tournamentData.status === "completed") {
+            displayContainer.style.display = 'grid'; startBtn.style.display = 'none'; genBtn.style.display = 'inline-block'; genBtn.disabled = true; 
+            statusBadge.innerText = "🏆 Tournament Completed"; statusBadge.style.color = "#10b981";
+        }
+    }
+
+    function generateBracket() {
+        if (tournamentData.status === "active" || tournamentData.status === "completed") return; 
+        if (stagedPlayers.length < 2) { alert("Please add at least 2 players."); return; }
+
+        tournamentData.players = [...stagedPlayers];
+        tournamentData.removedPlayers = [];
         tournamentData.activeMatchId = null; 
         tournamentData.activeMatchMetadata = null;
+        tournamentData.status = "unstarted";
+        
+        buildInitialFixtures(stagedPlayers);
+        applyLifecycleUIChanges();
         updateLiveWidget();
-        buildInitialFixtures(players);
         renderBracket();
-        document.getElementById('bracketsDisplay').style.display = 'flex';
+        saveToLocalStorage();
+    }
+
+    function startTournament() {
+        if (tournamentData.status !== "unstarted") return;
+        tournamentData.status = "active";
+        applyLifecycleUIChanges();
+        updateLiveWidget(); // Sync layout panel view directly on state switch frame
+        saveToLocalStorage();
+    }
+
+    function freshStartTournamentReset() {
+        let warningText = "Are you sure you want to trigger a fresh start? This completely wipes the bracket cache and resets the roster setup panel.";
+        if (tournamentData.status === "active") {
+            warningText = "⚠️ WARNING: A tournament is currently IN PROGRESS! Wiping it now will completely delete all ongoing matches and logged match scores. Do you want to proceed?";
+        }
+        if (!confirm(warningText)) return;
+        
+        isMidTournamentEditing = false;
+        document.getElementById('editRosterBtn').innerText = "⚙️ Edit Active Roster";
+        localStorage.removeItem('arenaLifecycleTournamentSave');
+        tournamentData = { players: [], removedPlayers: [], winnersRounds: [], losersRounds: [], grandFinal: null, activeMatchId: null, activeMatchMetadata: null, status: "empty" };
+        stagedPlayers = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank", "Grace", "Hank"]; 
+        applyLifecycleUIChanges();
+        updateLiveWidget();
     }
 
     function buildInitialFixtures(players) {
         const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(players.length)));
         const paddedPlayers = [...players];
-        while (paddedPlayers.length < nextPowerOfTwo) {
-            paddedPlayers.push("BYE");
-        }
+        while (paddedPlayers.length < nextPowerOfTwo) { paddedPlayers.push("BYE"); }
 
         let round1Matches = [];
         let matchIndex = 1;
@@ -370,19 +944,11 @@
             let p1 = paddedPlayers[i];
             let p2 = paddedPlayers[i+1];
             let winner = null;
-            
             if (p2 === "BYE") winner = p1;
             else if (p1 === "BYE") winner = p2;
 
-            round1Matches.push({
-                id: `W-R1-M${matchIndex++}`,
-                p1: p1,
-                p2: p2,
-                winner: winner,
-                loser: winner ? "BYE" : null
-            });
+            round1Matches.push({ id: `W-R1-M${matchIndex++}`, p1, p2, winner, loser: winner ? "BYE" : null });
         }
-
         tournamentData.winnersRounds = [round1Matches];
         
         let numWinnersRounds = Math.log2(nextPowerOfTwo);
@@ -396,9 +962,7 @@
         }
 
         tournamentData.losersRounds = [];
-        let losersRoundCount = (numWinnersRounds - 1) * 2;
-        if(losersRoundCount === 0) losersRoundCount = 1; 
-        
+        let losersRoundCount = Math.max(1, (numWinnersRounds - 1) * 2);
         let currentLosersMatchCount = round1Matches.length / 2; 
         
         for(let r = 0; r < losersRoundCount; r++) {
@@ -407,9 +971,7 @@
                 roundMatches.push({ id: `L-R${r+1}-M${m+1}`, p1: null, p2: null, winner: null, loser: null });
             }
             tournamentData.losersRounds.push(roundMatches);
-            if (r % 2 === 1) {
-                currentLosersMatchCount /= 2;
-            }
+            if (r % 2 === 1) currentLosersMatchCount /= 2;
         }
 
         tournamentData.grandFinal = { id: "GF-M1", p1: null, p2: null, winner: null };
@@ -417,92 +979,106 @@
     }
 
     function toggleMatchLive(type, rIdx, mIdx, matchId) {
+        if (tournamentData.status !== "active" || isMidTournamentEditing) return; 
+
         let round = type === 'W' ? tournamentData.winnersRounds[rIdx] : (type === 'L' ? tournamentData.losersRounds[rIdx] : null);
         let match = round ? round[mIdx] : tournamentData.grandFinal;
-
-        if (match.winner || !match.p1 || !match.p2) return;
+        
+        if (match.winner || !match.p1 || !match.p2 || match.p1 === "BYE" || match.p2 === "BYE") return;
 
         if (tournamentData.activeMatchId === matchId) {
-            tournamentData.activeMatchId = null; 
-            tournamentData.activeMatchMetadata = null;
+            tournamentData.activeMatchId = null; tournamentData.activeMatchMetadata = null;
         } else {
             tournamentData.activeMatchId = matchId;
-            tournamentData.activeMatchMetadata = { type, roundIdx: rIdx, matchIdx: mIdx, data: match };
+            tournamentData.activeMatchMetadata = { type, roundIdx: rIdx, matchIdx: mIdx, id: matchId };
         }
         updateLiveWidget();
         renderBracket();
+        saveToLocalStorage(); // Persist selections cleanly to eliminate dashboard out-of-sync frames
     }
 
-    // Interactive Box updating layout engine
+    // 🌟 UPGRADED: Bulletproof DOM Injector Logic Machine 🌟
     function updateLiveWidget() {
         const widget = document.getElementById('liveMatchWidget');
         const badge = document.getElementById('widgetBadge');
         const body = document.getElementById('widgetBody');
+        if (!widget || !badge || !body) return;
 
-        if (!tournamentData.activeMatchId || !tournamentData.activeMatchMetadata) {
-            widget.className = "live-widget";
-            badge.innerText = "OFFLINE";
-            body.innerHTML = `
-                <div style="color: #64748b; font-size: 13px; font-weight: normal; text-align: center; padding: 20px 0;">
-                    Select a match header to bring it live.
-                </div>`;
+        if (tournamentData.status === "unstarted") {
+            widget.className = "live-widget"; badge.innerText = "LOCKED";
+            body.innerHTML = `<div style="color: #a855f7; font-size: 13px; text-align: center; padding: 20px 0; font-weight: 600;">Click "Start Tournament" above to open and unlock match scoring!</div>`;
             return;
         }
 
-        let meta = tournamentData.activeMatchMetadata;
-        let m = meta.data;
-        widget.className = "live-widget active";
-        badge.innerText = "LIVE MATCH";
-        
-        body.innerHTML = `
-            <div style="color: #3b82f6; font-size: 12px; margin-bottom: 8px; text-align:center;">Match ID: ${m.id}</div>
-            <div class="widget-player-btn" onclick="triggerWidgetWinnerSelection(1)">${m.p1}</div>
-            <div class="widget-vs">VS</div>
-            <div class="widget-player-btn" onclick="triggerWidgetWinnerSelection(2)">${m.p2}</div>
-            <div style="color: #64748b; font-size: 11px; font-weight: normal; text-align: center; margin-top: 8px;">
-                💡 Click a player box above to instantly crown them winner!
-            </div>
-        `;
-    }
-
-    // Maps widget clicks back to execution loops
-    function triggerWidgetWinnerSelection(playerNum) {
-        let meta = tournamentData.activeMatchMetadata;
-        if (!meta) return;
-
-        if(meta.type === 'GF') {
-            selectGFWinner(playerNum);
-        } else {
-            advancePlayer(meta.type, meta.roundIdx, meta.matchIdx, playerNum);
+        if (tournamentData.status === "completed") {
+            widget.className = "live-widget completed-dashboard"; badge.innerText = "VICTORY";
+            let championName = tournamentData.grandFinal.winner || "Champion";
+            body.innerHTML = `
+                <div style="color: #10b981; font-size: 15px; text-align: center; font-weight: 700; margin-bottom:5px;">🏆 TOURNAMENT ENDED</div>
+                <div style="color: #e2e8f0; font-size: 13px; text-align: center; margin-bottom: 15px;">Winner: <strong>${championName}</strong></div>
+                <div id="newTourBtn" class="btn-success-widget">✨ New Tournament</div>
+            `;
+            document.getElementById('newTourBtn').onclick = freshStartTournamentReset;
+            return;
         }
+
+        if (!tournamentData.activeMatchId || !tournamentData.activeMatchMetadata) {
+            widget.className = "live-widget"; badge.innerText = "OFFLINE";
+            body.innerHTML = `<div style="color: #475569; font-size: 13px; text-align: center; padding: 20px 0;">Select an available match header inside the tree to begin.</div>`;
+            return;
+        }
+
+        const meta = tournamentData.activeMatchMetadata;
+        let m = null;
+        if (meta.type === 'GF') {
+            m = tournamentData.grandFinal;
+        } else if (meta.type === 'W') {
+            m = tournamentData.winnersRounds[meta.roundIdx] ? tournamentData.winnersRounds[meta.roundIdx][meta.matchIdx] : null;
+        } else if (meta.type === 'L') {
+            m = tournamentData.losersRounds[meta.roundIdx] ? tournamentData.losersRounds[meta.roundIdx][meta.matchIdx] : null;
+        }
+
+        if (!m) {
+            widget.className = "live-widget"; badge.innerText = "OFFLINE";
+            body.innerHTML = `<div style="color: #475569; font-size: 13px; text-align: center; padding: 20px 0;">Select an available match header inside the tree to begin.</div>`;
+            return;
+        }
+
+        widget.className = "live-widget active"; badge.innerText = "LIVE MATCH";
+        body.innerHTML = `
+            <div style="color: #3b82f6; font-size: 11px; margin-bottom: 10px; font-weight:700; text-align:center;">MATCH ID: ${m.id}</div>
+            <div id="wp1" class="widget-player-btn">${m.p1 || 'TBD'}</div>
+            <div class="widget-vs">VS</div>
+            <div id="wp2" class="widget-player-btn">${m.p2 || 'TBD'}</div>
+        `;
+        
+        const b1 = document.getElementById('wp1');
+        const b2 = document.getElementById('wp2');
+        if (b1) b1.onclick = () => triggerWidgetWinnerSelection(1);
+        if (b2) b2.onclick = () => triggerWidgetWinnerSelection(2);
     }
 
     function advancePlayer(bracketType, roundIdx, matchIdx, playerNum) {
+        if (tournamentData.status !== "active") return;
+
         let round = bracketType === 'W' ? tournamentData.winnersRounds[roundIdx] : tournamentData.losersRounds[roundIdx];
         let match = round[matchIdx];
-
         if (tournamentData.activeMatchId !== match.id) return; 
 
         let winner = playerNum === 1 ? match.p1 : match.p2;
         let loser = playerNum === 1 ? match.p2 : match.p1;
-
         if (!winner || winner === "BYE") return;
 
-        match.winner = winner;
-        match.loser = loser;
+        match.winner = winner; match.loser = loser;
+        tournamentData.activeMatchId = null; tournamentData.activeMatchMetadata = null;
         
-        tournamentData.activeMatchId = null; 
-        tournamentData.activeMatchMetadata = null;
         updateLiveWidget();
-
-        if (bracketType === 'W') {
-            propagateWinners(roundIdx);
-        } else {
-            propagateLosers(roundIdx);
-        }
+        if (bracketType === 'W') { propagateWinners(roundIdx); } 
+        else { propagateLosers(roundIdx); }
         
         updateGrandFinals();
         renderBracket();
+        saveToLocalStorage();
     }
 
     function propagateWinners(currentRoundIdx) {
@@ -516,7 +1092,6 @@
                     let nextMatchIdx = Math.floor(i / 2);
                     let slot = (i % 2 === 0) ? 'p1' : 'p2';
                     nextRound[nextMatchIdx][slot] = match.winner;
-                    
                     if(nextRound[nextMatchIdx].p1 === "BYE" || nextRound[nextMatchIdx].p2 === "BYE") {
                          nextRound[nextMatchIdx].winner = nextRound[nextMatchIdx].p1 === "BYE" ? nextRound[nextMatchIdx].p2 : nextRound[nextMatchIdx].p1;
                     }
@@ -531,7 +1106,6 @@
                 if (match.loser && match.loser !== "BYE") {
                     let targetLosersRoundIdx = currentRoundIdx === 0 ? 0 : (currentRoundIdx * 2 - 1);
                     let targetRound = tournamentData.losersRounds[targetLosersRoundIdx];
-                    
                     if (targetRound) {
                         let targetMatchIdx = Math.floor(i / (currentRoundIdx === 0 ? 2 : 1));
                         if(!targetRound[targetMatchIdx].p1) targetRound[targetMatchIdx].p1 = match.loser;
@@ -545,7 +1119,6 @@
     function propagateLosers(currentRoundIdx) {
         let currentRound = tournamentData.losersRounds[currentRoundIdx];
         let nextRound = tournamentData.losersRounds[currentRoundIdx + 1];
-
         if (!nextRound) return;
 
         for (let i = 0; i < currentRound.length; i++) {
@@ -566,23 +1139,31 @@
     function updateGrandFinals() {
         let finalWinnersRound = tournamentData.winnersRounds[tournamentData.winnersRounds.length - 1];
         let winnersChamp = finalWinnersRound[0].winner;
-
         let finalLosersRound = tournamentData.losersRounds[tournamentData.losersRounds.length - 1];
         let losersChamp = finalLosersRound ? finalLosersRound[0].winner : null;
-
         tournamentData.grandFinal.p1 = winnersChamp;
         tournamentData.grandFinal.p2 = losersChamp;
+    }
+
+    function triggerWidgetWinnerSelection(playerNum) {
+        let meta = tournamentData.activeMatchMetadata;
+        if (!meta) return;
+        if(meta.type === 'GF') selectGFWinner(playerNum);
+        else advancePlayer(meta.type, meta.roundIdx, meta.matchIdx, playerNum);
     }
 
     function renderBracket() {
         renderGrid('winnersGrid', tournamentData.winnersRounds, 'W');
         renderGrid('losersGrid', tournamentData.losersRounds, 'L');
         renderGrandFinal();
+        triggerGlobalLineRepaint(); 
     }
 
     function renderGrid(gridId, roundsData, bracketType) {
         const grid = document.getElementById(gridId);
+        const svgElement = grid.querySelector('svg');
         grid.innerHTML = '';
+        grid.appendChild(svgElement);
 
         roundsData.forEach((round, rIdx) => {
             const roundDiv = document.createElement('div');
@@ -591,26 +1172,37 @@
             round.forEach((match, mIdx) => {
                 const matchupDiv = document.createElement('div');
                 let isLive = (tournamentData.activeMatchId === match.id);
-                matchupDiv.className = `matchup ${isLive ? 'in-progress' : ''}`;
+                let isDoneClass = (match.winner) ? 'completed-match' : '';
+                
+                let leftP1 = tournamentData.removedPlayers && tournamentData.removedPlayers.includes(match.p1);
+                let leftP2 = tournamentData.removedPlayers && tournamentData.removedPlayers.includes(match.p2);
                 
                 let p1Class = match.winner === match.p1 && match.winner ? 'won' : (match.loser === match.p1 ? 'lost' : '');
                 let p2Class = match.winner === match.p2 && match.winner ? 'won' : (match.loser === match.p2 ? 'lost' : '');
                 
+                if (leftP1) p1Class += " removed-participant";
+                if (leftP2) p2Class += " removed-participant";
+
+                matchupDiv.className = `matchup ${isLive ? 'in-progress' : ''} ${isDoneClass}`;
+                
+                let p1Content = match.p1 ? `<span>${match.p1}${leftP1 ? ' (Left)' : ''}</span>` : `<span class="tbd-text">TBD</span>`;
+                let p2Content = match.p2 ? `<span>${match.p2}${leftP2 ? ' (Left)' : ''}</span>` : `<span class="tbd-text">TBD</span>`;
+
                 if(match.p1 === "BYE") p1Class = "bye";
                 if(match.p2 === "BYE") p2Class = "bye";
 
                 matchupDiv.innerHTML = `
-                    <div class="match-title" onclick="toggleMatchLive('${bracketType}', ${rIdx}, ${mIdx}, '${match.id}')">${match.id} ${isLive ? '• LIVE' : ''}</div>
-                    <div class="player ${p1Class}" onclick="advancePlayer('${bracketType}', ${rIdx}, ${mIdx}, 1)">
-                        <span>${match.p1 || 'TBD'}</span>
-                    </div>
-                    <div class="player ${p2Class}" onclick="advancePlayer('${bracketType}', ${rIdx}, ${mIdx}, 2)">
-                        <span>${match.p2 || 'TBD'}</span>
-                    </div>
+                    <div id="title-${match.id}" class="match-title">${match.id} ${isLive ? '• LIVE' : ''}</div>
+                    <div id="p1-${match.id}" class="player ${p1Class}">${p1Content}</div>
+                    <div id="p2-${match.id}" class="player ${p2Class}">${p2Content}</div>
                 `;
+                grid.appendChild(roundDiv);
                 roundDiv.appendChild(matchupDiv);
+
+                document.getElementById(`title-${match.id}`).onclick = () => toggleMatchLive(bracketType, rIdx, mIdx, match.id);
+                document.getElementById(`p1-${match.id}`).onclick = () => advancePlayer(bracketType, rIdx, mIdx, 1);
+                document.getElementById(`p2-${match.id}`).onclick = () => advancePlayer(bracketType, rIdx, mIdx, 2);
             });
-            grid.appendChild(roundDiv);
         });
     }
 
@@ -618,47 +1210,41 @@
         const grid = document.getElementById('grandFinalsGrid');
         grid.innerHTML = '';
         let gf = tournamentData.grandFinal;
-
         const roundDiv = document.createElement('div');
         roundDiv.className = 'round';
 
         let isLive = (tournamentData.activeMatchId === gf.id);
+        let isDoneClass = (tournamentData.status === "completed") ? 'completed-match' : '';
+        
+        let leftP1 = tournamentData.removedPlayers && tournamentData.removedPlayers.includes(gf.p1);
+        let leftP2 = tournamentData.removedPlayers && tournamentData.removedPlayers.includes(gf.p2);
+
         let p1Class = gf.winner === gf.p1 && gf.winner ? 'won' : '';
         let p2Class = gf.winner === gf.p2 && gf.winner ? 'won' : '';
+        
+        if (leftP1) p1Class += " removed-participant";
+        if (leftP2) p2Class += " removed-participant";
 
         const matchupDiv = document.createElement('div');
-        matchupDiv.className = `matchup ${isLive ? 'in-progress' : ''}`;
+        matchupDiv.className = `matchup ${isLive ? 'in-progress' : ''} ${isDoneClass}`;
+        
+        let p1Content = gf.p1 ? `<span>${gf.p1}${leftP1 ? ' (Left)' : ''}</span>` : `<span class="tbd-text">Winners Champion</span>`;
+        let p2Content = gf.p2 ? `<span>${gf.p2}${leftP2 ? ' (Left)' : ''}</span>` : `<span class="tbd-text">Losers Champion</span>`;
+
         matchupDiv.innerHTML = `
-            <div class="match-title" onclick="toggleMatchLive('GF', 0, 0, '${gf.id}')">Grand Final (${gf.id}) ${isLive ? '• LIVE' : ''}</div>
-            <div class="player ${p1Class}" onclick="triggerWidgetWinnerSelection(1)">
-                <span>${gf.p1 || 'Winners Champion'}</span>
-            </div>
-            <div class="player ${p2Class}" onclick="triggerWidgetWinnerSelection(2)">
-                <span>${gf.p2 || 'Losers Champion'}</span>
-            </div>
+            <div id="title-${gf.id}" class="match-title">Grand Final (${gf.id}) ${isLive ? '• LIVE' : ''}</div>
+            <div id="p1-${gf.id}" class="player ${p1Class}">${p1Content}</div>
+            <div id="p2-${gf.id}" class="player ${p2Class}">${p2Content}</div>
         `;
         roundDiv.appendChild(matchupDiv);
         grid.appendChild(roundDiv);
+
+        document.getElementById(`title-${gf.id}`).onclick = () => toggleMatchLive('GF', 0, 0, gf.id);
+        document.getElementById(`p1-${gf.id}`).onclick = () => triggerWidgetWinnerSelection(1);
+        document.getElementById(`p2-${gf.id}`).onclick = () => triggerWidgetWinnerSelection(2);
     }
 
-    function selectGFWinner(playerNum) {
-        let gf = tournamentData.grandFinal;
-        if(!gf.p1 || !gf.p2 || tournamentData.activeMatchId !== gf.id) return;
-        
-        gf.winner = playerNum === 1 ? gf.p1 : gf.p2;
-        tournamentData.activeMatchId = null;
-        tournamentData.activeMatchMetadata = null;
-        updateLiveWidget();
-        renderGrandFinal();
-        
-        if(gf.winner === gf.p1) {
-            alert(`🎉 Tournament over! ${gf.p1} is the Undefeated Champion! 🎉`);
-        } else {
-            alert(`🔄 Bracket Reset! ${gf.p2} (from Losers) defeated ${gf.p1}. A second Grand Final match must be played!`);
-        }
-    }
-
-    window.onload = generateBracket;
+    window.onload = loadFromLocalStorage;
 </script>
 </body>
 </html>
