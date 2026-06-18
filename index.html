@@ -1,1 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Double Elimination Bracket Generator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --winner-color: #22c55e;
+            --loser-color: #ef4444;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .setup-section {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        input, button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin: 5px;
+        }
+
+        input {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            width: 250px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        .bracket-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            padding: 20px 0;
+        }
+
+        /* Split layout layout for upper bracket section */
+        .upper-section-row {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .bracket-section {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Interactive Side Dashboard Widget */
+        .live-widget {
+            background-color: #111827;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .live-widget.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .widget-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-badge {
+            background-color: #334155;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .live-widget.active .widget-badge {
+            background-color: #1e3a8a;
+            color: #60a5fa;
+            animation: textPulse 1.5s infinite alternate;
+        }
+
+        @keyframes textPulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .widget-body {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        /* Clickable control cards inside the live status box */
+        .widget-player-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .widget-player-btn:hover {
+            background-color: #334155;
+            border-color: #60a5fa;
+            transform: translateY(-1px);
+        }
+
+        .widget-vs {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            margin: 4px 0;
+            font-weight: normal;
+        }
+
+        .tournament-grid {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            padding: 20px 0;
+            overflow-x: auto;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 20px;
+            min-width: 200px;
+        }
+
+        .matchup {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .matchup.in-progress {
+            border-color: #60a5fa;
+            animation: livePulse 2s infinite alternate;
+            z-index: 10;
+        }
+
+        @keyframes livePulse {
+            0% { box-shadow: 0 0 4px rgba(59, 130, 246, 0.4); }
+            100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.7); }
+        }
+
+        .match-title {
+            font-size: 11px;
+            text-align: center;
+            background: #111827;
+            padding: 6px 2px;
+            color: #94a3b8;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .match-title:hover {
+            background: #1f2937;
+            color: #60a5fa;
+        }
+
+        .matchup.in-progress .match-title {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .player {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            user-select: none;
+            color: #64748b;
+            cursor: not-allowed;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .player:first-of-type {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .matchup.in-progress .player {
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .matchup.in-progress .player:hover {
+            background-color: #334155;
+        }
+
+        .player.won {
+            color: var(--winner-color) !important;
+            font-weight: bold;
+        }
+
+        .player.lost {
+            color: #475569 !important;
+            text-decoration: line-through;
+        }
+        
+        .bye {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .grand-final-note {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Double Elimination Tournament Bracket</h1>
+    
+    <div class="setup-section">
+        <label for="playerInput">Enter players (comma separated):</label><br><br>
+        <input type="text" id="playerInput" value="Alice, Bob, Charlie, Dave, Eve, Frank, Grace, Hank">
+        <button onclick="generateBracket()">Generate Bracket</button>
+        <p style="color: #60a5fa; font-size: 14px; margin-top: 10px; margin-bottom: 0; font-weight: 500;">
+            🔒 <strong>Instructions:</strong> Click a Match Header (e.g. <em>W-R1-M1</em>) to toggle it live. You can pick the winner inside the bracket OR click on them directly within the <strong>Live Status Box</strong>!
+        </p>
+    </div>
+
+    <div id="bracketsDisplay" class="bracket-container" style="display: none;">
+        
+        <!-- Upper Row containing the Winners tree alongside our Interactive Dashboard Box -->
+        <div class="upper-section-row">
+            <div class="bracket-section">
+                <h2>Upper Bracket (Winners)</h2>
+                <div id="winnersGrid" class="tournament-grid"></div>
+            </div>
+
+            <!-- Dashboard Box placed cleanly on the Right Side of the Upper Tree -->
+            <div id="liveMatchWidget" class="live-widget">
+                <div class="widget-header">
+                    <span>Status Tracker</span>
+                    <span id="widgetBadge" class="widget-badge">OFFLINE</span>
+                </div>
+                <div id="widgetBody" class="widget-body">
+                    <div style="color: #64748b; font-size: 13px; font-weight: normal; text-align: center; padding: 20px 0;">
+                        Select a match header to bring it live.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Losers Bracket -->
+        <div class="bracket-section">
+            <h2>Lower Bracket (Losers)</h2>
+            <div id="losersGrid" class="tournament-grid"></div>
+        </div>
+
+        <!-- Grand Finals -->
+        <div class="bracket-section">
+            <h2>Grand Finals</h2>
+            <div id="grandFinalsGrid" class="tournament-grid" style="justify-content: center;"></div>
+            <p class="grand-final-note">*If the Loser's Bracket Champion wins the first match, a second "Bracket Reset" match is required.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tournamentData = {
+        players: [],
+        winnersRounds: [],
+        losersRounds: [],
+        grandFinal: null,
+        activeMatchId: null,
+        activeMatchMetadata: null // Holds structural positions for side panel executions
+    };
+
+    function generateBracket() {
+        const input = document.getElementById('playerInput').value;
+        let players = input.split(',').map(p => p.trim()).filter(p => p !== "");
+        
+        if (players.length < 2) {
+            alert("Please enter at least 2 players.");
+            return;
+        }
+
+        tournamentData.players = players;
+        tournamentData.activeMatchId = null; 
+        tournamentData.activeMatchMetadata = null;
+        updateLiveWidget();
+        buildInitialFixtures(players);
+        renderBracket();
+        document.getElementById('bracketsDisplay').style.display = 'flex';
+    }
+
+    function buildInitialFixtures(players) {
+        const nextPowerOfTwo = Math.pow(2, Math.ceil(Math.log2(players.length)));
+        const paddedPlayers = [...players];
+        while (paddedPlayers.length < nextPowerOfTwo) {
+            paddedPlayers.push("BYE");
+        }
+
+        let round1Matches = [];
+        let matchIndex = 1;
+        for (let i = 0; i < paddedPlayers.length; i += 2) {
+            let p1 = paddedPlayers[i];
+            let p2 = paddedPlayers[i+1];
+            let winner = null;
+            
+            if (p2 === "BYE") winner = p1;
+            else if (p1 === "BYE") winner = p2;
+
+            round1Matches.push({
+                id: `W-R1-M${matchIndex++}`,
+                p1: p1,
+                p2: p2,
+                winner: winner,
+                loser: winner ? "BYE" : null
+            });
+        }
+
+        tournamentData.winnersRounds = [round1Matches];
+        
+        let numWinnersRounds = Math.log2(nextPowerOfTwo);
+        for (let r = 1; r < numWinnersRounds; r++) {
+            let matchesInRound = round1Matches.length / Math.pow(2, r);
+            let roundMatches = [];
+            for (let m = 0; m < matchesInRound; m++) {
+                roundMatches.push({ id: `W-R${r+1}-M${m+1}`, p1: null, p2: null, winner: null, loser: null });
+            }
+            tournamentData.winnersRounds.push(roundMatches);
+        }
+
+        tournamentData.losersRounds = [];
+        let losersRoundCount = (numWinnersRounds - 1) * 2;
+        if(losersRoundCount === 0) losersRoundCount = 1; 
+        
+        let currentLosersMatchCount = round1Matches.length / 2; 
+        
+        for(let r = 0; r < losersRoundCount; r++) {
+            let roundMatches = [];
+            for(let m = 0; m < currentLosersMatchCount; m++) {
+                roundMatches.push({ id: `L-R${r+1}-M${m+1}`, p1: null, p2: null, winner: null, loser: null });
+            }
+            tournamentData.losersRounds.push(roundMatches);
+            if (r % 2 === 1) {
+                currentLosersMatchCount /= 2;
+            }
+        }
+
+        tournamentData.grandFinal = { id: "GF-M1", p1: null, p2: null, winner: null };
+        propagateWinners(0);
+    }
+
+    function toggleMatchLive(type, rIdx, mIdx, matchId) {
+        let round = type === 'W' ? tournamentData.winnersRounds[rIdx] : (type === 'L' ? tournamentData.losersRounds[rIdx] : null);
+        let match = round ? round[mIdx] : tournamentData.grandFinal;
+
+        if (match.winner || !match.p1 || !match.p2) return;
+
+        if (tournamentData.activeMatchId === matchId) {
+            tournamentData.activeMatchId = null; 
+            tournamentData.activeMatchMetadata = null;
+        } else {
+            tournamentData.activeMatchId = matchId;
+            tournamentData.activeMatchMetadata = { type, roundIdx: rIdx, matchIdx: mIdx, data: match };
+        }
+        updateLiveWidget();
+        renderBracket();
+    }
+
+    // Interactive Box updating layout engine
+    function updateLiveWidget() {
+        const widget = document.getElementById('liveMatchWidget');
+        const badge = document.getElementById('widgetBadge');
+        const body = document.getElementById('widgetBody');
+
+        if (!tournamentData.activeMatchId || !tournamentData.activeMatchMetadata) {
+            widget.className = "live-widget";
+            badge.innerText = "OFFLINE";
+            body.innerHTML = `
+                <div style="color: #64748b; font-size: 13px; font-weight: normal; text-align: center; padding: 20px 0;">
+                    Select a match header to bring it live.
+                </div>`;
+            return;
+        }
+
+        let meta = tournamentData.activeMatchMetadata;
+        let m = meta.data;
+        widget.className = "live-widget active";
+        badge.innerText = "LIVE MATCH";
+        
+        body.innerHTML = `
+            <div style="color: #3b82f6; font-size: 12px; margin-bottom: 8px; text-align:center;">Match ID: ${m.id}</div>
+            <div class="widget-player-btn" onclick="triggerWidgetWinnerSelection(1)">${m.p1}</div>
+            <div class="widget-vs">VS</div>
+            <div class="widget-player-btn" onclick="triggerWidgetWinnerSelection(2)">${m.p2}</div>
+            <div style="color: #64748b; font-size: 11px; font-weight: normal; text-align: center; margin-top: 8px;">
+                💡 Click a player box above to instantly crown them winner!
+            </div>
+        `;
+    }
+
+    // Maps widget clicks back to execution loops
+    function triggerWidgetWinnerSelection(playerNum) {
+        let meta = tournamentData.activeMatchMetadata;
+        if (!meta) return;
+
+        if(meta.type === 'GF') {
+            selectGFWinner(playerNum);
+        } else {
+            advancePlayer(meta.type, meta.roundIdx, meta.matchIdx, playerNum);
+        }
+    }
+
+    function advancePlayer(bracketType, roundIdx, matchIdx, playerNum) {
+        let round = bracketType === 'W' ? tournamentData.winnersRounds[roundIdx] : tournamentData.losersRounds[roundIdx];
+        let match = round[matchIdx];
+
+        if (tournamentData.activeMatchId !== match.id) return; 
+
+        let winner = playerNum === 1 ? match.p1 : match.p2;
+        let loser = playerNum === 1 ? match.p2 : match.p1;
+
+        if (!winner || winner === "BYE") return;
+
+        match.winner = winner;
+        match.loser = loser;
+        
+        tournamentData.activeMatchId = null; 
+        tournamentData.activeMatchMetadata = null;
+        updateLiveWidget();
+
+        if (bracketType === 'W') {
+            propagateWinners(roundIdx);
+        } else {
+            propagateLosers(roundIdx);
+        }
+        
+        updateGrandFinals();
+        renderBracket();
+    }
+
+    function propagateWinners(currentRoundIdx) {
+        let currentRound = tournamentData.winnersRounds[currentRoundIdx];
+        let nextRound = tournamentData.winnersRounds[currentRoundIdx + 1];
+
+        if (nextRound) {
+            for (let i = 0; i < currentRound.length; i++) {
+                let match = currentRound[i];
+                if (match.winner) {
+                    let nextMatchIdx = Math.floor(i / 2);
+                    let slot = (i % 2 === 0) ? 'p1' : 'p2';
+                    nextRound[nextMatchIdx][slot] = match.winner;
+                    
+                    if(nextRound[nextMatchIdx].p1 === "BYE" || nextRound[nextMatchIdx].p2 === "BYE") {
+                         nextRound[nextMatchIdx].winner = nextRound[nextMatchIdx].p1 === "BYE" ? nextRound[nextMatchIdx].p2 : nextRound[nextMatchIdx].p1;
+                    }
+                }
+            }
+            propagateWinners(currentRoundIdx + 1);
+        }
+
+        if (tournamentData.losersRounds.length > 0) {
+            for (let i = 0; i < currentRound.length; i++) {
+                let match = currentRound[i];
+                if (match.loser && match.loser !== "BYE") {
+                    let targetLosersRoundIdx = currentRoundIdx === 0 ? 0 : (currentRoundIdx * 2 - 1);
+                    let targetRound = tournamentData.losersRounds[targetLosersRoundIdx];
+                    
+                    if (targetRound) {
+                        let targetMatchIdx = Math.floor(i / (currentRoundIdx === 0 ? 2 : 1));
+                        if(!targetRound[targetMatchIdx].p1) targetRound[targetMatchIdx].p1 = match.loser;
+                        else if(!targetRound[targetMatchIdx].p2 && targetRound[targetMatchIdx].p1 !== match.loser) targetRound[targetMatchIdx].p2 = match.loser;
+                    }
+                }
+            }
+        }
+    }
+
+    function propagateLosers(currentRoundIdx) {
+        let currentRound = tournamentData.losersRounds[currentRoundIdx];
+        let nextRound = tournamentData.losersRounds[currentRoundIdx + 1];
+
+        if (!nextRound) return;
+
+        for (let i = 0; i < currentRound.length; i++) {
+            let match = currentRound[i];
+            if (match.winner) {
+                if (currentRoundIdx % 2 === 0) {
+                    if(!nextRound[i].p2) nextRound[i].p2 = match.winner;
+                } else {
+                    let nextMatchIdx = Math.floor(i / 2);
+                    let slot = (i % 2 === 0) ? 'p1' : 'p2';
+                    nextRound[nextMatchIdx][slot] = match.winner;
+                }
+            }
+        }
+        propagateLosers(currentRoundIdx + 1);
+    }
+
+    function updateGrandFinals() {
+        let finalWinnersRound = tournamentData.winnersRounds[tournamentData.winnersRounds.length - 1];
+        let winnersChamp = finalWinnersRound[0].winner;
+
+        let finalLosersRound = tournamentData.losersRounds[tournamentData.losersRounds.length - 1];
+        let losersChamp = finalLosersRound ? finalLosersRound[0].winner : null;
+
+        tournamentData.grandFinal.p1 = winnersChamp;
+        tournamentData.grandFinal.p2 = losersChamp;
+    }
+
+    function renderBracket() {
+        renderGrid('winnersGrid', tournamentData.winnersRounds, 'W');
+        renderGrid('losersGrid', tournamentData.losersRounds, 'L');
+        renderGrandFinal();
+    }
+
+    function renderGrid(gridId, roundsData, bracketType) {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = '';
+
+        roundsData.forEach((round, rIdx) => {
+            const roundDiv = document.createElement('div');
+            roundDiv.className = 'round';
+            
+            round.forEach((match, mIdx) => {
+                const matchupDiv = document.createElement('div');
+                let isLive = (tournamentData.activeMatchId === match.id);
+                matchupDiv.className = `matchup ${isLive ? 'in-progress' : ''}`;
+                
+                let p1Class = match.winner === match.p1 && match.winner ? 'won' : (match.loser === match.p1 ? 'lost' : '');
+                let p2Class = match.winner === match.p2 && match.winner ? 'won' : (match.loser === match.p2 ? 'lost' : '');
+                
+                if(match.p1 === "BYE") p1Class = "bye";
+                if(match.p2 === "BYE") p2Class = "bye";
+
+                matchupDiv.innerHTML = `
+                    <div class="match-title" onclick="toggleMatchLive('${bracketType}', ${rIdx}, ${mIdx}, '${match.id}')">${match.id} ${isLive ? '• LIVE' : ''}</div>
+                    <div class="player ${p1Class}" onclick="advancePlayer('${bracketType}', ${rIdx}, ${mIdx}, 1)">
+                        <span>${match.p1 || 'TBD'}</span>
+                    </div>
+                    <div class="player ${p2Class}" onclick="advancePlayer('${bracketType}', ${rIdx}, ${mIdx}, 2)">
+                        <span>${match.p2 || 'TBD'}</span>
+                    </div>
+                `;
+                roundDiv.appendChild(matchupDiv);
+            });
+            grid.appendChild(roundDiv);
+        });
+    }
+
+    function renderGrandFinal() {
+        const grid = document.getElementById('grandFinalsGrid');
+        grid.innerHTML = '';
+        let gf = tournamentData.grandFinal;
+
+        const roundDiv = document.createElement('div');
+        roundDiv.className = 'round';
+
+        let isLive = (tournamentData.activeMatchId === gf.id);
+        let p1Class = gf.winner === gf.p1 && gf.winner ? 'won' : '';
+        let p2Class = gf.winner === gf.p2 && gf.winner ? 'won' : '';
+
+        const matchupDiv = document.createElement('div');
+        matchupDiv.className = `matchup ${isLive ? 'in-progress' : ''}`;
+        matchupDiv.innerHTML = `
+            <div class="match-title" onclick="toggleMatchLive('GF', 0, 0, '${gf.id}')">Grand Final (${gf.id}) ${isLive ? '• LIVE' : ''}</div>
+            <div class="player ${p1Class}" onclick="triggerWidgetWinnerSelection(1)">
+                <span>${gf.p1 || 'Winners Champion'}</span>
+            </div>
+            <div class="player ${p2Class}" onclick="triggerWidgetWinnerSelection(2)">
+                <span>${gf.p2 || 'Losers Champion'}</span>
+            </div>
+        `;
+        roundDiv.appendChild(matchupDiv);
+        grid.appendChild(roundDiv);
+    }
+
+    function selectGFWinner(playerNum) {
+        let gf = tournamentData.grandFinal;
+        if(!gf.p1 || !gf.p2 || tournamentData.activeMatchId !== gf.id) return;
+        
+        gf.winner = playerNum === 1 ? gf.p1 : gf.p2;
+        tournamentData.activeMatchId = null;
+        tournamentData.activeMatchMetadata = null;
+        updateLiveWidget();
+        renderGrandFinal();
+        
+        if(gf.winner === gf.p1) {
+            alert(`🎉 Tournament over! ${gf.p1} is the Undefeated Champion! 🎉`);
+        } else {
+            alert(`🔄 Bracket Reset! ${gf.p2} (from Losers) defeated ${gf.p1}. A second Grand Final match must be played!`);
+        }
+    }
+
+    window.onload = generateBracket;
+</script>
+</body>
+</html>
