@@ -226,6 +226,29 @@
             border-color: rgba(239, 68, 68, 0.5);
             color: #ef4444;
         }
+        .btn-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .btn-warning:hover {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.5);
+            color: #f59e0b;
+        }
+        .btn-warning:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-warning:disabled:hover {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.25);
+            color: #fbbf24;
+        }
 
         /* ── Toolbar ── */
         .round-toolbar {
@@ -1199,6 +1222,144 @@
             pointer-events: none;
         }
 
+        /* ── Modify Players Modal ── */
+        #modifyPlayersModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        #modifyPlayersModal.open {
+            display: flex;
+        }
+        .modify-container {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px 35px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+        }
+        .modify-container h2 {
+            margin-top: 0;
+            color: #f8fafc;
+            font-size: 22px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modify-container h2 small {
+            font-size: 13px;
+            font-weight: 400;
+            color: #64748b;
+        }
+        .modify-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .modify-input-row input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-color);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        .modify-input-row button {
+            padding: 10px 20px;
+            white-space: nowrap;
+        }
+        .modify-player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0 20px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            min-height: 50px;
+            border: 1px dashed var(--border-color);
+        }
+        .modify-player-chip {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--border-color);
+            color: #60a5fa;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .modify-player-chip .remove-chip-btn {
+            color: var(--loser-color);
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 15px;
+        }
+        .modify-player-chip.removed {
+            opacity: 0.5;
+            text-decoration: line-through;
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.05);
+        }
+        .modify-player-chip.added {
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.05);
+        }
+        .modify-player-chip .restore-btn {
+            color: #60a5fa;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 15px;
+        }
+        .modify-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .modify-actions button {
+            padding: 10px 28px;
+        }
+        .modify-status {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .modify-status .warning {
+            color: #f59e0b;
+        }
+        .modify-status .info-added {
+            color: #34d399;
+        }
+        .modify-status .info-removed {
+            color: #f87171;
+        }
+
         /* ── Responsive ── */
         @media (max-width: 900px) {
             .global-layout-grid {
@@ -1248,6 +1409,15 @@
             .celebration-stats .stat-value {
                 font-size: 22px;
             }
+            .modify-container {
+                padding: 20px;
+            }
+            .modify-input-row {
+                flex-wrap: wrap;
+            }
+            .modify-input-row input {
+                min-width: 150px;
+            }
         }
     </style>
 </head>
@@ -1284,6 +1454,28 @@
         </div>
     </div>
 
+    <!-- ====== MODIFY PLAYERS MODAL ====== -->
+    <div id="modifyPlayersModal">
+        <div class="modify-container">
+            <h2>
+                <span>✏️ Modify Players</span>
+                <small id="modifyPlayerCount">0 players</small>
+            </h2>
+            <div class="modify-input-row">
+                <input type="text" id="modifyPlayerInput" placeholder="Enter player name..." />
+                <button class="btn-secondary-action" onclick="addModifyPlayer()">Add</button>
+            </div>
+            <div class="modify-player-list" id="modifyPlayerList"></div>
+            <div class="modify-status" id="modifyStatus">
+                <span>⚠️ Adding/removing players will restructure the bracket. Completed matches will be preserved.</span>
+            </div>
+            <div class="modify-actions">
+                <button class="btn-danger" onclick="closeModifyModal()">Cancel</button>
+                <button class="btn-primary" onclick="applyPlayerChanges()">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ====== MAIN ====== -->
     <div class="container">
         <h1>Double Elimination Tournament Arena</h1>
@@ -1306,7 +1498,8 @@
                         </label>
                     </div>
                 </div>
-                <div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button id="modifyBtn" class="btn-warning" onclick="openModifyModal()" style="display:none;">✏️ Modify Players</button>
                     <button id="topResetBtn" class="btn-danger" onclick="freshStartTournamentReset()">Reset &amp; Start Fresh</button>
                 </div>
             </div>
@@ -1394,6 +1587,7 @@
         };
 
         let stagedPlayers = ["Alice", "Bob", "Charlie", "Dave"];
+        let modifyPlayersWorkingCopy = [];
 
         // ================================================================
         //  CANVAS BG
@@ -1505,7 +1699,6 @@
                         drag: 0.98 + Math.random() * 0.01
                     });
                 }
-                // Add sparkle particles
                 for (let i = 0; i < 20; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const speed = 1 + Math.random() * 3;
@@ -1526,7 +1719,6 @@
 
             draw() {
                 if (this.exploded) return;
-                // Trail
                 for (let i = 0; i < this.trail.length; i++) {
                     const alpha = i / this.trail.length * 0.6;
                     fwCtx.beginPath();
@@ -1534,7 +1726,6 @@
                     fwCtx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
                     fwCtx.fill();
                 }
-                // Head
                 fwCtx.beginPath();
                 fwCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 fwCtx.fillStyle = this.color;
@@ -1548,13 +1739,9 @@
 
         function updateFireworks() {
             fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
-
-            // Spawn new fireworks
             if (fwRunning && Math.random() < 0.12) {
                 fireworks.push(new Firework());
             }
-
-            // Update fireworks
             for (let i = fireworks.length - 1; i >= 0; i--) {
                 const fw = fireworks[i];
                 if (!fw.exploded) {
@@ -1564,8 +1751,6 @@
                     fireworks.splice(i, 1);
                 }
             }
-
-            // Update particles
             for (let i = fwParticles.length - 1; i >= 0; i--) {
                 const p = fwParticles[i];
                 p.x += p.vx;
@@ -1586,19 +1771,16 @@
                 fwCtx.fill();
                 fwCtx.globalAlpha = 1;
             }
-
             fwAnimId = requestAnimationFrame(updateFireworks);
         }
 
         function startFireworks() {
             if (fwRunning) return;
             fwRunning = true;
-            // Clear any existing particles
             fireworks = [];
             fwParticles = [];
             if (fwAnimId) cancelAnimationFrame(fwAnimId);
             updateFireworks();
-            // Spawn a burst immediately
             for (let i = 0; i < 8; i++) {
                 setTimeout(() => {
                     if (fwRunning) {
@@ -1651,7 +1833,8 @@
             const container = document.getElementById('playerChipsContainer');
             container.innerHTML = '';
             const isLocked = tournamentData.status !== "empty";
-            stagedPlayers.forEach((player, idx) => {
+            const displayPlayers = isLocked ? tournamentData.players : stagedPlayers;
+            displayPlayers.forEach((player, idx) => {
                 const chip = document.createElement('div');
                 chip.className = 'player-chip';
                 chip.innerHTML = `<span>${player}</span>`;
@@ -1666,11 +1849,314 @@
             });
             document.getElementById('playerEntryBox').style.display = isLocked ? 'none' : 'flex';
             updateBo3ToggleState();
+            updateModifyButtonState();
+        }
+
+        // ================================================================
+        //  MODIFY BUTTON STATE - Disabled when Grand Finals are decided
+        // ================================================================
+        function updateModifyButtonState() {
+            const modifyBtn = document.getElementById('modifyBtn');
+            if (!modifyBtn) return;
+
+            // Check if Grand Finals are decided (both finalists are set)
+            const gf = tournamentData.grandFinal;
+            const isGfDecided = gf && gf.p1 && gf.p2 && gf.p1 !== "BYE" && gf.p2 !== "BYE";
+
+            // Only show/enable modify button in active or unstarted state, and only if GF not decided
+            if ((tournamentData.status === "active" || tournamentData.status === "unstarted") && !isGfDecided) {
+                modifyBtn.style.display = 'inline-block';
+                modifyBtn.disabled = false;
+                modifyBtn.title = 'Modify player roster';
+            } else if (tournamentData.status === "active" && isGfDecided) {
+                modifyBtn.style.display = 'inline-block';
+                modifyBtn.disabled = true;
+                modifyBtn.title = '⚠️ Grand Finals are set! Players cannot be modified.';
+                modifyBtn.style.opacity = '0.5';
+                modifyBtn.style.cursor = 'not-allowed';
+            } else {
+                modifyBtn.style.display = 'none';
+                modifyBtn.disabled = true;
+            }
         }
 
         document.getElementById('onePlayerInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') { addSinglePlayer(); }
         });
+
+        // ================================================================
+        //  MODIFY PLAYERS
+        // ================================================================
+        function openModifyModal() {
+            const modifyBtn = document.getElementById('modifyBtn');
+            if (modifyBtn.disabled) {
+                alert('⚠️ Grand Finals are already set! Players cannot be modified at this stage.');
+                return;
+            }
+            if (tournamentData.status !== "active" && tournamentData.status !== "unstarted") return;
+            modifyPlayersWorkingCopy = [...tournamentData.players];
+            renderModifyList();
+            document.getElementById('modifyPlayersModal').classList.add('open');
+            document.getElementById('modifyPlayerInput').value = '';
+            document.getElementById('modifyPlayerInput').focus();
+        }
+
+        function closeModifyModal() {
+            document.getElementById('modifyPlayersModal').classList.remove('open');
+        }
+
+        function renderModifyList() {
+            const container = document.getElementById('modifyPlayerList');
+            const countDisplay = document.getElementById('modifyPlayerCount');
+            const statusEl = document.getElementById('modifyStatus');
+            container.innerHTML = '';
+            countDisplay.textContent = `${modifyPlayersWorkingCopy.length} players`;
+
+            const originalSet = new Set(tournamentData.players);
+            const currentSet = new Set(modifyPlayersWorkingCopy);
+
+            const addedPlayers = modifyPlayersWorkingCopy.filter(p => !originalSet.has(p));
+            const keptPlayers = modifyPlayersWorkingCopy.filter(p => originalSet.has(p));
+            const removedPlayers = tournamentData.players.filter(p => !modifyPlayersWorkingCopy.includes(p));
+
+            let statusParts = [];
+            if (addedPlayers.length > 0) {
+                statusParts.push(`<span class="info-added">+ ${addedPlayers.length} added</span>`);
+            }
+            if (removedPlayers.length > 0) {
+                statusParts.push(`<span class="info-removed">- ${removedPlayers.length} removed</span>`);
+            }
+            if (statusParts.length === 0) {
+                statusEl.innerHTML = `<span style="color:#64748b;">No changes pending</span>`;
+            } else {
+                statusEl.innerHTML = statusParts.join(' &nbsp;|&nbsp; ') +
+                    ` &nbsp;|&nbsp; <span class="warning">⚠️ Bracket will restructure</span>`;
+            }
+
+            [...keptPlayers, ...addedPlayers].forEach((player, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'modify-player-chip';
+                if (addedPlayers.includes(player)) {
+                    chip.classList.add('added');
+                }
+                chip.innerHTML = `
+              <span>${player} ${addedPlayers.includes(player) ? '✨' : ''}</span>
+              <span class="remove-chip-btn" onclick="removeModifyPlayer(${idx})">&times;</span>
+            `;
+                container.appendChild(chip);
+            });
+
+            removedPlayers.forEach(player => {
+                const chip = document.createElement('div');
+                chip.className = 'modify-player-chip removed';
+                chip.innerHTML = `
+              <span>${player} (removed)</span>
+              <span class="restore-btn" onclick="restoreModifyPlayer('${player}')">↩</span>
+            `;
+                container.appendChild(chip);
+            });
+
+            if (modifyPlayersWorkingCopy.length === 0 && removedPlayers.length === 0) {
+                container.innerHTML = '<span style="color:#475569;font-size:13px;padding:10px;">No players in tournament</span>';
+            }
+        }
+
+        function addModifyPlayer() {
+            const input = document.getElementById('modifyPlayerInput');
+            const value = input.value.trim();
+            if (!value) return;
+            if (modifyPlayersWorkingCopy.some(p => p.toLowerCase() === value.toLowerCase())) {
+                alert("This name is already in the list.");
+                return;
+            }
+            modifyPlayersWorkingCopy.push(value);
+            input.value = '';
+            renderModifyList();
+        }
+
+        function removeModifyPlayer(index) {
+            modifyPlayersWorkingCopy.splice(index, 1);
+            renderModifyList();
+        }
+
+        function restoreModifyPlayer(player) {
+            if (!modifyPlayersWorkingCopy.includes(player)) {
+                modifyPlayersWorkingCopy.push(player);
+                renderModifyList();
+            }
+        }
+
+        document.getElementById('modifyPlayerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { addModifyPlayer(); }
+        });
+
+        function applyPlayerChanges() {
+            if (modifyPlayersWorkingCopy.length < 2) {
+                alert("Tournament needs at least 2 players.");
+                return;
+            }
+
+            const unique = new Set(modifyPlayersWorkingCopy);
+            if (unique.size !== modifyPlayersWorkingCopy.length) {
+                alert("Duplicate player names found. Please remove duplicates.");
+                return;
+            }
+
+            if (!confirm(`Apply these changes? This will restructure the bracket.\n\nCurrent players: ${tournamentData.players.join(', ')}\nNew players: ${modifyPlayersWorkingCopy.join(', ')}`)) {
+                return;
+            }
+
+            // Preserve completed match results
+            const completedMatches = {};
+            const collectCompleted = (rounds) => {
+                rounds.forEach(round => {
+                    round.forEach(match => {
+                        if (match.status === 'completed' && match.winner) {
+                            completedMatches[match.id] = {
+                                winner: match.winner,
+                                loser: match.loser,
+                                p1Wins: match.p1Wins || 0,
+                                p2Wins: match.p2Wins || 0
+                            };
+                        }
+                    });
+                });
+            };
+            collectCompleted(tournamentData.winnersRounds);
+            collectCompleted(tournamentData.losersRounds);
+            if (tournamentData.grandFinal && tournamentData.grandFinal.status === 'completed') {
+                completedMatches[tournamentData.grandFinal.id] = {
+                    winner: tournamentData.grandFinal.winner,
+                    loser: tournamentData.grandFinal.loser,
+                    p1Wins: tournamentData.grandFinal.p1Wins || 0,
+                    p2Wins: tournamentData.grandFinal.p2Wins || 0
+                };
+            }
+
+            // Update players
+            tournamentData.players = [...modifyPlayersWorkingCopy];
+            stagedPlayers = [...modifyPlayersWorkingCopy];
+
+            // Rebuild bracket
+            const oldStatus = tournamentData.status;
+            const oldBo3 = tournamentData.bestOfThree;
+            const oldActiveMatchId = tournamentData.activeMatchId;
+            const oldActiveMatchMetadata = tournamentData.activeMatchMetadata;
+            const oldPendingWinner = tournamentData.pendingWinner;
+            const oldBracketResetPlayed = tournamentData.bracketResetPlayed;
+
+            buildInitialFixtures(tournamentData.players);
+            tournamentData.bestOfThree = oldBo3;
+            tournamentData.status = oldStatus;
+            tournamentData.activeMatchId = oldActiveMatchId;
+            tournamentData.activeMatchMetadata = oldActiveMatchMetadata;
+            tournamentData.pendingWinner = oldPendingWinner;
+            tournamentData.bracketResetPlayed = oldBracketResetPlayed;
+
+            // Restore completed match results - ONLY if both players still exist
+            const restoreCompleted = (rounds) => {
+                rounds.forEach(round => {
+                    round.forEach(match => {
+                        if (completedMatches[match.id]) {
+                            const result = completedMatches[match.id];
+                            const p1Exists = match.p1 && tournamentData.players.includes(match.p1);
+                            const p2Exists = match.p2 && tournamentData.players.includes(match.p2);
+                            const winnerExists = result.winner && tournamentData.players.includes(result
+                            .winner);
+                            const loserExists = result.loser && tournamentData.players.includes(result
+                            .loser);
+
+                            if (p1Exists && p2Exists && winnerExists && loserExists) {
+                                match.winner = result.winner;
+                                match.loser = result.loser;
+                                match.status = 'completed';
+                                if (tournamentData.bestOfThree) {
+                                    match.p1Wins = result.p1Wins || 0;
+                                    match.p2Wins = result.p2Wins || 0;
+                                }
+                            } else {
+                                match.winner = null;
+                                match.loser = null;
+                                match.status = 'pending';
+                                match.p1Wins = 0;
+                                match.p2Wins = 0;
+                                match.breaker = null;
+                            }
+                        }
+                    });
+                });
+            };
+            restoreCompleted(tournamentData.winnersRounds);
+            restoreCompleted(tournamentData.losersRounds);
+
+            // Handle Grand Final
+            if (tournamentData.grandFinal && completedMatches[tournamentData.grandFinal.id]) {
+                const result = completedMatches[tournamentData.grandFinal.id];
+                const gf = tournamentData.grandFinal;
+                const p1Exists = gf.p1 && tournamentData.players.includes(gf.p1);
+                const p2Exists = gf.p2 && tournamentData.players.includes(gf.p2);
+                const winnerExists = result.winner && tournamentData.players.includes(result.winner);
+                const loserExists = result.loser && tournamentData.players.includes(result.loser);
+
+                if (p1Exists && p2Exists && winnerExists && loserExists) {
+                    gf.winner = result.winner;
+                    gf.loser = result.loser;
+                    gf.status = 'completed';
+                    if (tournamentData.bestOfThree) {
+                        gf.p1Wins = result.p1Wins || 0;
+                        gf.p2Wins = result.p2Wins || 0;
+                    }
+                } else {
+                    gf.winner = null;
+                    gf.loser = null;
+                    gf.status = 'pending';
+                    gf.p1Wins = 0;
+                    gf.p2Wins = 0;
+                    gf.breaker = null;
+                }
+            }
+
+            // Propagate to fill in TBDs
+            propagateBrackets();
+
+            // Handle tournament completion status
+            if (tournamentData.status === "completed") {
+                const champ = tournamentData.grandFinal.winner;
+                if (champ && tournamentData.players.includes(champ)) {
+                    // Keep completed
+                } else {
+                    tournamentData.status = "active";
+                    tournamentData.grandFinal.status = 'pending';
+                    tournamentData.grandFinal.winner = null;
+                    tournamentData.grandFinal.loser = null;
+                    tournamentData.grandFinal.p1Wins = 0;
+                    tournamentData.grandFinal.p2Wins = 0;
+                    tournamentData.bracketResetPlayed = false;
+                }
+            }
+
+            // Reset any active match if player was removed
+            if (tournamentData.activeMatchId && tournamentData.activeMatchMetadata) {
+                const meta = tournamentData.activeMatchMetadata;
+                let match = null;
+                if (meta.type === 'GF') match = tournamentData.grandFinal;
+                else if (meta.type === 'W') match = tournamentData.winnersRounds[meta.roundIdx]?.[meta.matchIdx];
+                else if (meta.type === 'L') match = tournamentData.losersRounds[meta.roundIdx]?.[meta.matchIdx];
+                if (match && (match.status === 'active' || match.status === 'paused')) {
+                    match.status = 'pending';
+                    tournamentData.activeMatchId = null;
+                    tournamentData.activeMatchMetadata = null;
+                    tournamentData.pendingWinner = null;
+                }
+            }
+
+            closeModifyModal();
+            applyLifecycleUIChanges();
+            updateLiveWidget();
+            renderBracket();
+            saveToLocalStorage();
+            renderStatsTable();
+        }
 
         // ================================================================
         //  BO3 TOGGLE
@@ -2057,6 +2543,7 @@
             renderPlayerChips();
             rebuildToolbarInterface();
             updateBo3ToggleState();
+            updateModifyButtonState();
 
             if (tournamentData.status === "empty") {
                 displayContainer.style.display = 'none';
@@ -2242,6 +2729,7 @@
             updateLiveWidget();
             renderBracket();
             saveToLocalStorage();
+            updateModifyButtonState();
         }
 
         // ── COIN TOSS inside widget (fast ~1.5s) ──
@@ -2293,7 +2781,6 @@
             const resultDisplay = document.getElementById('widgetTossResult');
             const closeBtn = document.getElementById('widgetTossClose');
 
-            // Fast flip for 0.8s, then slow for 0.5s, then land
             let flipCount = 0;
             const flipInterval = setInterval(() => {
                 flipCount++;
@@ -2302,14 +2789,12 @@
                 }
             }, 150);
 
-            // Slow down after 0.8s
             setTimeout(() => {
                 clearInterval(flipInterval);
                 coin.className = 'coin flipping';
                 coin.style.animationDuration = '0.5s';
             }, 800);
 
-            // Land after 1.3s total
             setTimeout(() => {
                 coin.className = 'coin landing';
                 coin.style.animationDuration = '0.4s';
@@ -2389,6 +2874,7 @@
                     saveToLocalStorage();
                     renderStatsTable();
                 }
+                updateModifyButtonState();
             } else {
                 updateLiveWidget();
                 renderBracket();
@@ -2419,6 +2905,7 @@
                 saveToLocalStorage();
                 renderStatsTable();
                 showCelebration(winner);
+                updateModifyButtonState();
                 return;
             }
 
@@ -2440,6 +2927,7 @@
                 saveToLocalStorage();
                 renderStatsTable();
                 alert(`🔄 Bracket Reset! ${winner} forced the true final Bracket Reset match!`);
+                updateModifyButtonState();
                 return;
             }
 
@@ -2456,6 +2944,7 @@
             saveToLocalStorage();
             renderStatsTable();
             showCelebration(winner);
+            updateModifyButtonState();
         }
 
         // ================================================================
@@ -2482,13 +2971,6 @@
 
             overlay.classList.add('open');
             startFireworks();
-
-            // Auto-close after 10 seconds
-            setTimeout(() => {
-                if (overlay.classList.contains('open')) {
-                    // Don't auto-close, let user click
-                }
-            }, 10000);
         }
 
         function closeCelebration() {
@@ -2538,6 +3020,7 @@
             renderBracket();
             saveToLocalStorage();
             renderStatsTable();
+            updateModifyButtonState();
         }
 
         function selectGFWinner(playerNum) {
@@ -2567,6 +3050,7 @@
                 saveToLocalStorage();
                 renderStatsTable();
                 showCelebration(matchWinner);
+                updateModifyButtonState();
             } else {
                 tournamentData.bracketResetPlayed = true;
                 tournamentData.activeMatchId = null;
@@ -2584,6 +3068,7 @@
                 saveToLocalStorage();
                 renderStatsTable();
                 alert(`🔄 Bracket Reset! ${matchWinner} forced the true final Bracket Reset match!`);
+                updateModifyButtonState();
             }
         }
 
