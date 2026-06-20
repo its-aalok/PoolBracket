@@ -57,6 +57,162 @@
             text-shadow: 0 0 30px rgba(96, 165, 250, 0.2);
         }
 
+        /* ── HOME PAGE ── */
+        #homePage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 20px;
+            text-align: center;
+        }
+        #homePage h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+        #homePage .subtitle {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            letter-spacing: 0.05em;
+        }
+        .developer-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px 50px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        .developer-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        .developer-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+        }
+        .developer-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 6px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .developer-role {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .developer-email {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #60a5fa;
+            font-size: 14px;
+            background: rgba(59, 130, 246, 0.08);
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .developer-email:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: scale(1.02);
+        }
+        .developer-email .email-icon {
+            font-size: 18px;
+        }
+        .developer-badge {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .home-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .home-actions button {
+            padding: 14px 40px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
+        .btn-home-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn-home-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+        }
+        .btn-home-secondary {
+            background: transparent;
+            color: #94a3b8;
+            border: 1px solid var(--border-color);
+        }
+        .btn-home-secondary:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: #64748b;
+            color: #f8fafc;
+        }
+
+        .bracket-preview {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            opacity: 0.5;
+        }
+        .bracket-preview .preview-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .bracket-preview .preview-item .highlight {
+            color: #60a5fa;
+        }
+
         /* ── Setup ── */
         .setup-section {
             background: var(--card-bg);
@@ -66,6 +222,10 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
             margin-bottom: 30px;
+            display: none;
+        }
+        .setup-section.visible {
+            display: block;
         }
         .setup-row {
             display: flex;
@@ -263,6 +423,10 @@
             margin-bottom: 25px;
             backdrop-filter: blur(8px);
             flex-wrap: wrap;
+            display: none;
+        }
+        .round-toolbar.visible {
+            display: flex;
         }
         .toolbar-label {
             font-size: 11px;
@@ -290,11 +454,14 @@
 
         /* ── Layout ── */
         .global-layout-grid {
-            display: grid;
+            display: none;
             grid-template-columns: 1fr 320px;
             gap: 40px;
             width: 100%;
             max-width: 100%;
+        }
+        .global-layout-grid.visible {
+            display: grid;
         }
 
         .sidebar-container {
@@ -997,6 +1164,10 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             flex-shrink: 0;
+            display: none;
+        }
+        .stats-widget.visible {
+            display: block;
         }
         .stats-header {
             padding: 15px 20px;
@@ -1418,6 +1589,20 @@
             .modify-input-row input {
                 min-width: 150px;
             }
+            #homePage h1 {
+                font-size: 2.5rem;
+            }
+            .developer-card {
+                padding: 30px 25px;
+            }
+            .developer-avatar {
+                width: 90px;
+                height: 90px;
+                font-size: 36px;
+            }
+            .developer-name {
+                font-size: 22px;
+            }
         }
     </style>
 </head>
@@ -1478,10 +1663,39 @@
 
     <!-- ====== MAIN ====== -->
     <div class="container">
-        <h1>Double Elimination Tournament Arena</h1>
 
-        <!-- Setup -->
-        <div class="setup-section">
+        <!-- ====== HOME PAGE ====== -->
+        <div id="homePage">
+            <h1>🏆 Tournament Arena</h1>
+            <p class="subtitle">Double Elimination Bracket System</p>
+
+            <div class="developer-card">
+                <div class="developer-avatar">👨‍💻</div>
+                <div class="developer-name">Alok Kumar</div>
+                <div class="developer-role">Full Stack Developer</div>
+                <a href="mailto:itsaalok.kumar@gmail.com" class="developer-email">
+                    <span class="email-icon">✉️</span>
+                    itsaalok.kumar@gmail.com
+                </a>
+                <div class="developer-badge">⚡ Built with ❤️</div>
+            </div>
+
+            <div class="home-actions">
+                <button class="btn-home-primary" onclick="enterTournament()">🚀 Enter Tournament</button>
+                <button class="btn-home-secondary" onclick="loadSavedTournament()">📂 Load Saved</button>
+            </div>
+
+            <div class="bracket-preview">
+                <span class="preview-item">🔹 Double Elimination</span>
+                <span class="preview-item">🔹 <span class="highlight">Best of 3</span> Support</span>
+                <span class="preview-item">🔹 Live Dashboard</span>
+                <span class="preview-item">🔹 🎱 Coin Toss</span>
+                <span class="preview-item">🔹 🏆 Celebrations</span>
+            </div>
+        </div>
+
+        <!-- ====== SETUP SECTION ====== -->
+        <div class="setup-section" id="setupSection">
             <div class="setup-row">
                 <div class="setup-controls">
                     <div class="input-bucket" id="playerEntryBox">
@@ -1501,6 +1715,7 @@
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button id="modifyBtn" class="btn-warning" onclick="openModifyModal()" style="display:none;">✏️ Modify Players</button>
                     <button id="topResetBtn" class="btn-danger" onclick="freshStartTournamentReset()">Reset &amp; Start Fresh</button>
+                    <button class="btn-secondary-action" onclick="goHome()">🏠 Home</button>
                 </div>
             </div>
             <div>
@@ -1508,14 +1723,14 @@
             </div>
         </div>
 
-        <!-- Toolbar -->
-        <div id="roundNavToolbar" class="round-toolbar" style="display:none;">
+        <!-- ====== TOOLBAR ====== -->
+        <div id="roundNavToolbar" class="round-toolbar">
             <span class="toolbar-label">Arena Viewport Track:</span>
             <div id="toolbarButtonsWrapper" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
 
-        <!-- Brackets -->
-        <div id="bracketsDisplay" class="global-layout-grid" style="display:none;">
+        <!-- ====== BRACKETS ====== -->
+        <div id="bracketsDisplay" class="global-layout-grid">
 
             <div class="bracket-container">
                 <div id="winnersSection" class="bracket-section">
@@ -1552,7 +1767,7 @@
                     </div>
                 </div>
 
-                <div id="statsWidget" class="stats-widget" style="display:none;">
+                <div id="statsWidget" class="stats-widget">
                     <div id="statsHeader" class="stats-header" onclick="toggleStats()">
                         <span>📊 Tournament Leaderboard</span>
                         <span id="statsIcon">▼</span>
@@ -1588,6 +1803,44 @@
 
         let stagedPlayers = ["Alice", "Bob", "Charlie", "Dave"];
         let modifyPlayersWorkingCopy = [];
+        let isHomePageVisible = true;
+
+        // ================================================================
+        //  NAVIGATION
+        // ================================================================
+        function enterTournament() {
+            isHomePageVisible = false;
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('setupSection').classList.add('visible');
+            // Check if there's a saved tournament
+            const saved = localStorage.getItem('arenaLifecycleTournamentSave');
+            if (saved) {
+                loadFromLocalStorage();
+            } else {
+                renderPlayerChips();
+                updateBo3ToggleState();
+                updateModifyButtonState();
+            }
+        }
+
+        function goHome() {
+            isHomePageVisible = true;
+            document.getElementById('homePage').style.display = 'flex';
+            document.getElementById('setupSection').classList.remove('visible');
+            document.getElementById('roundNavToolbar').classList.remove('visible');
+            document.getElementById('bracketsDisplay').classList.remove('visible');
+            document.getElementById('statsWidget').classList.remove('visible');
+        }
+
+        function loadSavedTournament() {
+            const saved = localStorage.getItem('arenaLifecycleTournamentSave');
+            if (saved) {
+                enterTournament();
+                loadFromLocalStorage();
+            } else {
+                alert('No saved tournament found. Create a new one!');
+            }
+        }
 
         // ================================================================
         //  CANVAS BG
@@ -1853,21 +2106,21 @@
         }
 
         // ================================================================
-        //  MODIFY BUTTON STATE - Disabled when Grand Finals are decided
+        //  MODIFY BUTTON STATE
         // ================================================================
         function updateModifyButtonState() {
             const modifyBtn = document.getElementById('modifyBtn');
             if (!modifyBtn) return;
 
-            // Check if Grand Finals are decided (both finalists are set)
             const gf = tournamentData.grandFinal;
             const isGfDecided = gf && gf.p1 && gf.p2 && gf.p1 !== "BYE" && gf.p2 !== "BYE";
 
-            // Only show/enable modify button in active or unstarted state, and only if GF not decided
             if ((tournamentData.status === "active" || tournamentData.status === "unstarted") && !isGfDecided) {
                 modifyBtn.style.display = 'inline-block';
                 modifyBtn.disabled = false;
                 modifyBtn.title = 'Modify player roster';
+                modifyBtn.style.opacity = '1';
+                modifyBtn.style.cursor = 'pointer';
             } else if (tournamentData.status === "active" && isGfDecided) {
                 modifyBtn.style.display = 'inline-block';
                 modifyBtn.disabled = true;
@@ -2006,7 +2259,6 @@
                 return;
             }
 
-            // Preserve completed match results
             const completedMatches = {};
             const collectCompleted = (rounds) => {
                 rounds.forEach(round => {
@@ -2033,11 +2285,9 @@
                 };
             }
 
-            // Update players
             tournamentData.players = [...modifyPlayersWorkingCopy];
             stagedPlayers = [...modifyPlayersWorkingCopy];
 
-            // Rebuild bracket
             const oldStatus = tournamentData.status;
             const oldBo3 = tournamentData.bestOfThree;
             const oldActiveMatchId = tournamentData.activeMatchId;
@@ -2053,7 +2303,6 @@
             tournamentData.pendingWinner = oldPendingWinner;
             tournamentData.bracketResetPlayed = oldBracketResetPlayed;
 
-            // Restore completed match results - ONLY if both players still exist
             const restoreCompleted = (rounds) => {
                 rounds.forEach(round => {
                     round.forEach(match => {
@@ -2089,7 +2338,6 @@
             restoreCompleted(tournamentData.winnersRounds);
             restoreCompleted(tournamentData.losersRounds);
 
-            // Handle Grand Final
             if (tournamentData.grandFinal && completedMatches[tournamentData.grandFinal.id]) {
                 const result = completedMatches[tournamentData.grandFinal.id];
                 const gf = tournamentData.grandFinal;
@@ -2116,10 +2364,8 @@
                 }
             }
 
-            // Propagate to fill in TBDs
             propagateBrackets();
 
-            // Handle tournament completion status
             if (tournamentData.status === "completed") {
                 const champ = tournamentData.grandFinal.winner;
                 if (champ && tournamentData.players.includes(champ)) {
@@ -2135,7 +2381,6 @@
                 }
             }
 
-            // Reset any active match if player was removed
             if (tournamentData.activeMatchId && tournamentData.activeMatchMetadata) {
                 const meta = tournamentData.activeMatchMetadata;
                 let match = null;
@@ -2247,10 +2492,10 @@
 
         function renderStatsTable() {
             if (tournamentData.status === "empty") {
-                document.getElementById('statsWidget').style.display = 'none';
+                document.getElementById('statsWidget').classList.remove('visible');
                 return;
             }
-            document.getElementById('statsWidget').style.display = 'block';
+            document.getElementById('statsWidget').classList.add('visible');
 
             let stats = getPlayerStats();
             let rankScore = {};
@@ -2378,10 +2623,10 @@
             const wrapper = document.getElementById('toolbarButtonsWrapper');
             if (!toolbar || !wrapper) return;
             if (tournamentData.status === "empty") {
-                toolbar.style.display = 'none';
+                toolbar.classList.remove('visible');
                 return;
             }
-            toolbar.style.display = 'flex';
+            toolbar.classList.add('visible');
             wrapper.innerHTML = '';
 
             tournamentData.winnersRounds.forEach((round, index) => {
@@ -2546,30 +2791,34 @@
             updateModifyButtonState();
 
             if (tournamentData.status === "empty") {
-                displayContainer.style.display = 'none';
+                displayContainer.classList.remove('visible');
                 startBtn.style.display = 'none';
                 genBtn.style.display = 'inline-block';
                 genBtn.disabled = false;
                 statusBadge.innerText = "📋 Standing By";
                 statusBadge.style.color = "#94a3b8";
+                document.getElementById('statsWidget').classList.remove('visible');
             } else if (tournamentData.status === "unstarted") {
-                displayContainer.style.display = 'grid';
+                displayContainer.classList.add('visible');
                 startBtn.style.display = 'inline-block';
                 genBtn.style.display = 'none';
                 statusBadge.innerText = "⏳ Bracket Built - Awaiting Start";
                 statusBadge.style.color = "#a855f7";
+                document.getElementById('statsWidget').classList.add('visible');
             } else if (tournamentData.status === "active") {
-                displayContainer.style.display = 'grid';
+                displayContainer.classList.add('visible');
                 startBtn.style.display = 'none';
                 genBtn.style.display = 'none';
                 statusBadge.innerText = "⚔️ Tournament In Progress";
                 statusBadge.style.color = "#38bdf8";
+                document.getElementById('statsWidget').classList.add('visible');
             } else if (tournamentData.status === "completed") {
-                displayContainer.style.display = 'grid';
+                displayContainer.classList.add('visible');
                 startBtn.style.display = 'none';
                 genBtn.style.display = 'none';
                 statusBadge.innerText = "🏆 Tournament Completed";
                 statusBadge.style.color = "#10b981";
+                document.getElementById('statsWidget').classList.add('visible');
             }
             renderStatsTable();
             updateBo3Badges();
@@ -2732,7 +2981,7 @@
             updateModifyButtonState();
         }
 
-        // ── COIN TOSS inside widget (fast ~1.5s) ──
+        // ── COIN TOSS ──
         let tossInProgress = false;
 
         function executeToss() {
@@ -2978,7 +3227,7 @@
             stopFireworks();
         }
 
-        // ── Legacy confirm (non-BO3) ──
+        // ── Legacy confirm ──
         function executeConfirmWinner() {
             if (tournamentData.bestOfThree) return;
             let meta = tournamentData.activeMatchMetadata;
@@ -3384,7 +3633,38 @@
         // ================================================================
         //  BOOT
         // ================================================================
-        window.onload = loadFromLocalStorage;
+        // Show home page by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there's a saved tournament and auto-load if user wants
+            const saved = localStorage.getItem('arenaLifecycleTournamentSave');
+            if (saved) {
+                // Show home page with option to load
+                document.getElementById('homePage').style.display = 'flex';
+            } else {
+                document.getElementById('homePage').style.display = 'flex';
+            }
+            // Initialize background
+            loadFromLocalStorage();
+        });
+
+        // Make functions globally accessible
+        window.addSinglePlayer = addSinglePlayer;
+        window.removeSinglePlayer = removeSinglePlayer;
+        window.generateBracket = generateBracket;
+        window.startTournament = startTournament;
+        window.freshStartTournamentReset = freshStartTournamentReset;
+        window.openModifyModal = openModifyModal;
+        window.closeModifyModal = closeModifyModal;
+        window.addModifyPlayer = addModifyPlayer;
+        window.removeModifyPlayer = removeModifyPlayer;
+        window.restoreModifyPlayer = restoreModifyPlayer;
+        window.applyPlayerChanges = applyPlayerChanges;
+        window.onBo3Toggle = onBo3Toggle;
+        window.toggleStats = toggleStats;
+        window.enterTournament = enterTournament;
+        window.goHome = goHome;
+        window.loadSavedTournament = loadSavedTournament;
+        window.closeCelebration = closeCelebration;
     </script>
 </body>
 </html>
