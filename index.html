@@ -3089,6 +3089,79 @@
                 return;
             }
 
+            const originalPlayers = [...tournamentData.players];
+            const removedPlayers = originalPlayers.filter(p => !modifyPlayersWorkingCopy.includes(p));
+            const addedPlayers = modifyPlayersWorkingCopy.filter(p => !originalPlayers.includes(p));
+            const canApplyInPlaceRemoval = removedPlayers.length > 0 &&
+                addedPlayers.length === 0 &&
+                (tournamentData.bracketFormat === 'single' || tournamentData.bracketFormat === 'double');
+
+            if (canApplyInPlaceRemoval) {
+                const removedSet = new Set(removedPlayers);
+                const scrubMatch = (match) => {
+                    if (!match) return;
+
+                    const removedP1 = match.p1 && removedSet.has(match.p1);
+                    const removedP2 = match.p2 && removedSet.has(match.p2);
+                    const removedWinner = match.winner && removedSet.has(match.winner);
+                    const removedLoser = match.loser && removedSet.has(match.loser);
+
+                    if (removedP1) match.p1 = "BYE";
+                    if (removedP2) match.p2 = "BYE";
+
+                    if (match.status === 'active' || match.status === 'paused') {
+                        match.status = 'pending';
+                        match.breaker = null;
+                        match.winner = null;
+                        match.loser = null;
+                        match.p1Wins = 0;
+                        match.p2Wins = 0;
+                    }
+
+                    if (removedWinner) {
+                        match.status = 'pending';
+                        match.winner = null;
+                        match.loser = null;
+                        match.breaker = null;
+                        match.p1Wins = 0;
+                        match.p2Wins = 0;
+                    } else if (removedLoser && match.status === 'completed') {
+                        match.loser = "BYE";
+                    }
+
+                    if (match.status !== 'completed' && (removedP1 || removedP2)) {
+                        match.winner = null;
+                        match.loser = null;
+                        match.breaker = null;
+                        match.p1Wins = 0;
+                        match.p2Wins = 0;
+                    }
+                };
+
+                tournamentData.players = [...modifyPlayersWorkingCopy];
+                stagedPlayers = [...modifyPlayersWorkingCopy];
+
+                tournamentData.winnersRounds.forEach(round => round.forEach(scrubMatch));
+                tournamentData.losersRounds.forEach(round => round.forEach(scrubMatch));
+                if (tournamentData.grandFinal) scrubMatch(tournamentData.grandFinal);
+
+                tournamentData.activeMatchId = null;
+                tournamentData.activeMatchMetadata = null;
+                tournamentData.pendingWinner = null;
+                tournamentData.pendingRoundRobinDiff = null;
+                tournamentData.bracketResetPlayed = false;
+
+                propagateBrackets();
+
+                closeModifyModal();
+                applyLifecycleUIChanges();
+                updateLiveWidget();
+                renderBracket();
+                saveToLocalStorage();
+                renderStatsTable();
+                return;
+            }
+
             const completedMatches = {};
             const collectCompleted = (rounds) => {
                 rounds.forEach(round => {
